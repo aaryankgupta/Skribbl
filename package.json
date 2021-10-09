@@ -1,14 +1,25 @@
 {
-  "name": "skribbl2",
+  "name": "ssl_project",
   "version": "1.0.0",
-  "description": "",
+  "description": "This repository contains our course project `Skribbl Skribbl` of `CS251` course `Software Systems Laboratory`  done under prof. `Amitabha Sanyal` in our third semester at IITB.",
   "main": "index.js",
   "scripts": {
-    "Skribbl": "nodemon server.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sankalppar/ssl_project.git"
   },
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sankalppar/ssl_project/issues"
+  },
+  "homepage": "https://github.com/sankalppar/ssl_project#readme",
   "dependencies": {
+    "ejs": "^3.1.6",
+    "express": "^4.17.1",
     "http-server": "^13.0.2",
     "socket.io": "^4.2.0"
   },
