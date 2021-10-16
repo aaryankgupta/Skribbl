@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>    
+    <meta charset="UTF-8">
+	<title>Skribruh</title>
+	<link rel="icon" type="image/png" href="/storage/img/icon.jpg"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/10.16.6/sweetalert2.css">
+	<link rel="stylesheet" href="/css/index.css">
+  <meta content="width=device-width, initial-scale=1" name="viewport" />
+  <link rel="stylesheet" href="/css/home/index.css">
+  <link rel="stylesheet" href="/css/device.css">
+</head>
+
+<body>
+	<div class="header">
+			<img class="logo" src="/storage/img/logo.gif">
+	</div>
+    <div class="content">
+        <div class="user-form">
+            <input class="user-name form-control" type="text" placeholder="enter your name">
+            <div class="user-character-container">
+                <div class="avatarArrows">
+                  <div class="avatarArrow avatarArrowLeft" data-index="1"></div>
+                  <div class="avatarArrow avatarArrowLeft" data-index="2"></div>
+                  <div class="avatarArrow avatarArrowLeft" data-index="3"></div>
+                </div>
+                <div class="avatarContainer">
+                  <div class="avatar-fit">
+                    <div class="user-color" style="background-size: 960px 960px;"></div>
+                    <div class="user-eyes" style="background-size: 960px 960px; "></div>
+                    <div class="user-mouth" style="background-size: 960px 960px;"></div>
+                  </div>
+                </div>
+                <div class="avatarArrows">
+                  <div class="avatarArrow avatarArrowRight" data-index="1"></div>
+                  <div class="avatarArrow avatarArrowRight" data-index="2"></div>
+                  <div class="avatarArrow avatarArrowRight" data-index="3"></div>
+                </div>
+
+            </div>
+            <button class="btn btn-success play-button">Play!</button>
+            <button class="btn btn-primary create-room-button">Create a private room!</button>
+        </div>
+    </div>
+</body>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/limonte-sweetalert2/10.16.6/sweetalert2.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/player.js"></script>
+<script src="/js/game.js"></script>
+<script src="/cdn/jquery/jquery.min.js"></script>
+<script src="/cdn/sweetalert2/sweetalert2.min.js"></script>
+<script src="/cdn/bootstrap/js/bootstrap.min.js"></script>
+</html>
