@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Chat App</title>
+  <title>Skribbl</title>
   <script>
       const roomName = "<%= roomName %>"
   </script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <script defer src="http://localhost:3000/socket.io/socket.io.js"></script>
   <script defer src="script.js"></script>
   <style>
@@ -15,16 +13,17 @@
       padding: 0;
       margin: 0;
       display: flex;
-      justify-content: center;
     }
 
     #message-container {
-      width: 80%;
+      width: 30%;
       max-width: 1200px;
+      margin-left: auto;
+      margin-right: 0;
     }
 
     #message-container div {
-      background-color: #CCC;
+      background-color: rgb(60,179,113);
       padding: 5px;
     }
 
@@ -33,25 +32,66 @@
     }
 
     #send-container {
-      position: fixed;
-      padding-bottom: 30px;
+      position: absolute;
+      padding-bottom: 100px;
       bottom: 0;
-      background-color: white;
+      width: 30%;
       max-width: 1200px;
-      width: 80%;
-      display: flex;
+      background-color: white;
+      margin-bottom: 10px;
+      right: 0;
     }
 
     #message-input {
-      flex-grow: 1;
+      width: 80%;
+    }
+
+    #whiteboard {
+      height: 100%;
+      width: 50%;
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      top: 0;
+    }
+
+    #colors {
+      position: fixed;
+    }
+
+    .color {
+      display: inline-block;
+      height: 40px;
+      width: 40px;
+    }
+
+    .color.black {
+      background-color: black;
+    }
+
+    .color.yellow {
+      background-color: yellow;
+    }
+
+    .color.green {
+      background-color: green;
     }
   </style>
 </head>
 <body>
+  <canvas id="whiteboard"></canvas>
+  <div id="colors">
+  <div class="color black"></div>
+  <div class="color yellow"></div>
+  <div class="color green"></div>
+  </div>
   <div id="message-container"></div>
-  <form id="send-container">
+  <div id="send-container">
+  <form>
     <input type="text" id="message-input">
-    <button type="submit" id="send-button">Send</button>
+    <button type="submit" id="send-button" class="btn btn-success">Send</button>
   </form>
+  </div>
 </body>
 </html>
