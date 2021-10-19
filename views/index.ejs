@@ -8,14 +8,19 @@
 </head>
 <body>
     <div id="room-container">
-    <% Object.keys(rooms).forEach(room => { %>
-        <div><%= room %></div>
-        <a href="/<%= room %>">Join</a>
-    <% }) %>
-    <form action="/room" method="POST">
+        <form action="/room" method="POST">
         <input name="room" type="text" required>
         <button type="submit" class="btn btn-success">New Room</button>
     </form>
+    <br>
+    <h2>Active Public Rooms</h2>
+    <% Object.keys(rooms).forEach(room => { %>
+        <div>
+        <%= room %>
+        <a href="/<%= room %>" class="btn btn-success">Join Room</a>
+        </div>
+    <% }) %>
+
     </div>
 </body>
 </html>
