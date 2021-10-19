@@ -36,24 +36,27 @@ app.get('/:room', (req, res) => {
   res.render('room', { roomName: req.params.room });
 })
 
-server.listen(3000, () =>
-console.log('Listening on port *:3000'));
+server.listen(5500, () =>
+console.log('Listening on port *:5500'));
 
 io.on('connection', socket => {
   socket.on('new-user', (room,name) => {
     socket.join(room);
     rooms[room].users[socket.id] = name;
     socket.to(room).emit('user-connected', name);
-  })
+  });
   socket.on('send-chat-message', (room, message) => {
     socket.to(room).emit('chat-message', { message: message, name: rooms[room].users[socket.id] });
-  })
+  });
+  socket.on('drawing', (room, data) => {
+    socket.to(room).emit('drawing-data', data)
+  });
   socket.on('disconnect', () => {
     getUserRooms(socket).forEach(room => {
       socket.to(room).emit('user-disconnected', rooms[room].users[socket.id]);
       delete rooms[room].users[socket.id];
     })
-  })
+  });
 })
 
 function getUserRooms(socket) {

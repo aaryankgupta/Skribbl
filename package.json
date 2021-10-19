@@ -11,7 +11,7 @@
     "type": "git",
     "url": "git+https://github.com/sankalppar/ssl_project.git"
   },
-  "author": "",
+  "author": "me",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/sankalppar/ssl_project/issues"
@@ -25,5 +25,8 @@
   },
   "devDependencies": {
     "nodemon": "^2.0.13"
-  }
+  },
+  "keywords": [
+    "study"
+  ]
 }
