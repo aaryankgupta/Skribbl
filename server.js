@@ -51,6 +51,9 @@ io.on('connection', socket => {
   socket.on('drawing', (room, data) => {
     socket.to(room).emit('drawing-data', data)
   });
+  socket.on('drawing-end', (room) => {
+    socket.to(room).emit('drawing-end')
+  });
   socket.on('disconnect', () => {
     getUserRooms(socket).forEach(room => {
       socket.to(room).emit('user-disconnected', rooms[room].users[socket.id]);

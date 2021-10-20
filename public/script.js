@@ -35,6 +35,7 @@ if (messageForm != null){
       {
         paint = false;
         ctx.beginPath();
+        socket.emit('drawing-end', roomName);
       }
       function Draw()
       {
@@ -80,6 +81,7 @@ if (messageForm != null){
     canvas.addEventListener("mouseup", endDraw);
     canvas.addEventListener("mousemove", Draw);
     socket.on('drawing-data', drawingEvent);
+    socket.on('drawing-end', () => ctx.beginPath());
 }
 
 
