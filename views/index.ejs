@@ -4,21 +4,25 @@
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 <title>Skribbl</title>
 <script defer src="http://localhost:5500/socket.io/socket.io.js"></script>
-<script defer drc="script.js"></script>
+<script defer src="script.js"></script>
 </head>
 <body>
     <div id="room-container">
         <form action="/room" method="POST">
-        <input name="room" type="text" required>
-        <button type="submit" class="btn btn-success">New Room</button>
+        Room Name : <input name="room" type="text" required>
+        <button type="submit" class="btn btn-success">New Public Room</button>
     </form>
+    <br>
+    <a href="/private" class="btn btn-success">Create/Join Private Room</a>
     <br>
     <h2>Active Public Rooms</h2>
     <% Object.keys(rooms).forEach(room => { %>
-        <div>
-        <%= room %>
-        <a href="/<%= room %>" class="btn btn-success">Join Room</a>
-        </div>
+        <% if(!rooms[room].id){ %>
+            <div>
+            <%= room %>
+            <a href="/<%= room %>" class="btn btn-success">Join Room</a>
+            </div>
+        <% } %>
     <% }) %>
 
     </div>

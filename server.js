@@ -24,17 +24,36 @@ app.post('/room', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/');
   }
-  rooms[req.body.room] = { users: {} };
+  rooms[req.body.room] = { users: {}, id: null };
   res.redirect(req.body.room);
   io.emit('room-created', req.body.room);
 })
+
+app.get('/private', (req, res) => {
+  res.render('private.ejs', {});
+});
+
+app.post('/privateroom', (req, res) => {
+  if (rooms[req.body.room] != null) {
+    return res.redirect('/private');
+  }
+  rooms[req.body.room] = { users: {}, id: req.body.pass};
+  res.redirect(req.body.room);
+});
+
+app.post('/joinprivate', (req, res) => {
+  if (rooms[req.body.room] == null) {
+    return res.redirect('/private');
+  }
+  return res.redirect(req.body.room);
+});
 
 app.get('/:room', (req, res) => {
   if (rooms[req.params.room] == null) {
     return res.redirect('/');
   }
-  res.render('room', { roomName: req.params.room });
-})
+  res.render('room', { roomName: req.params.room, roomPass: rooms[req.params.room].id });
+});
 
 server.listen(5500, () =>
 console.log('Listening on port *:5500'));

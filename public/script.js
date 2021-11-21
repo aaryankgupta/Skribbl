@@ -7,6 +7,12 @@ var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
 if (messageForm != null){
+    if (roomPass != null){
+        const pass = prompt('Enter The Password');
+        if (pass != roomPass){
+            location.href = "/";
+        }
+    }
     const name = prompt('What is your name?');
     appendMessage('You joined');
     socket.emit('new-user', roomName, name);
@@ -106,7 +112,8 @@ socket.on('room-created', room => {
     roomLink.innerText = 'join';
     room_container.append(roomElement);
     room_container.append(roomLink);
-})
+});
+
 function appendMessage(message) {
     const messageElement = document.createElement('div')
     messageElement.innerText = message
