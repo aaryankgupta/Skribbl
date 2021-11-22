@@ -101,11 +101,13 @@ if (messageForm != null){
         word_container.innerHTML = word;
         socket.emit('word-length', room, word.length);
         guessed = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
     socket.on('guess-length', (num) => {
         var guess = '*'.repeat(num);
         word_container.innerHTML = guess;
         guessed = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
     socket.on('correct-guess', () => {
         guessed = true;
