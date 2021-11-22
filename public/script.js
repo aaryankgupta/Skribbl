@@ -1,13 +1,15 @@
 const socket = io('http://localhost:5500')
 const messageContainer = document.getElementById('message-container')
 const messageForm = document.getElementById('send-container')
+const startForm = document.getElementById('start-button-container')
 const messageInput = document.getElementById('message-input')
 const room_container = document.getElementById('room-container')
+const word_container = document.getElementById('word-container')
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
 if (messageForm != null){
-    if (roomPass != null){
+    if (roomPass != ''){
         const pass = prompt('Enter The Password');
         if (pass != roomPass){
             location.href = "/";
@@ -22,6 +24,11 @@ if (messageForm != null){
         appendMessage(`You: ${  message}`)
         socket.emit('send-chat-message', roomName, message)
         messageInput.value = ''
+    });
+
+    startForm.addEventListener('submit', e => {
+        e.preventDefault()
+        socket.emit('start-game', roomName)
     });
 
     canvas.height = window.innerHeight*0.7;
@@ -88,6 +95,14 @@ if (messageForm != null){
     canvas.addEventListener("mousemove", Draw);
     socket.on('drawing-data', drawingEvent);
     socket.on('drawing-end', () => ctx.beginPath());
+    socket.on('round-begin', (word, room) => {
+        word_container.innerHTML = word;
+        socket.emit('word-length', room, word.length);
+    });
+    socket.on('guess-length', (num) => {
+        var guess = '*'.repeat(num);
+        word_container.innerHTML = guess;
+    });
 }
 
 

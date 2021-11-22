@@ -106,10 +106,14 @@
   <div class="color yellow" onclick="change('yellow')"></div> 
   <div class="color grey" onclick="change('white')"></div> 
   </div>
-  
+  <div id="word-container"></div>
 
   <input type = "range" max="20" min="1" oninput="changeWidth()" id="thickness" value="3"><br>
-
+  <div id="start-button-container">
+  <form>
+    <button type="submit" id="start-button" class="btn btn-success">Start</button>
+  </form>
+  </div>
   <div id="message-container"></div>
   <div id="send-container">
   <form>

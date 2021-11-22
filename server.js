@@ -1,6 +1,8 @@
 
 const express = require('express');
 const app = express();
+var EventEmitter = require('events').EventEmitter
+var emitter = new EventEmitter();
 
 const server = require('http').Server(app);
 const io = require('socket.io')(server, {
@@ -16,6 +18,14 @@ app.use(express.urlencoded({ extended: true }));
 
 const rooms = {};
 
+const words = ['hello', 'bye', 'sample1', 'sample2'];
+
+var current_word = null;
+
+var round_number = 1;
+
+var current_player = null;
+
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
 });
@@ -24,7 +34,7 @@ app.post('/room', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/');
   }
-  rooms[req.body.room] = { users: {}, id: null };
+  rooms[req.body.room] = { users: {}, id: null, played: {} };
   res.redirect(req.body.room);
   io.emit('room-created', req.body.room);
 })
@@ -37,7 +47,7 @@ app.post('/privateroom', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/private');
   }
-  rooms[req.body.room] = { users: {}, id: req.body.pass};
+  rooms[req.body.room] = { users: {}, id: req.body.pass, played: {}};
   res.redirect(req.body.room);
 });
 
@@ -62,10 +72,11 @@ io.on('connection', socket => {
   socket.on('new-user', (room,name) => {
     socket.join(room);
     rooms[room].users[socket.id] = name;
+    rooms[room].played[socket.id] = false;
     socket.to(room).emit('user-connected', name);
   });
   socket.on('send-chat-message', (room, message) => {
-    socket.to(room).emit('chat-message', { message: message, name: rooms[room].users[socket.id] });
+    socket.to(room).emit('chat-message', { message: message, name: rooms[room].users[socket.id]});
   });
   socket.on('drawing', (room, data) => {
     socket.to(room).emit('drawing-data', data)
@@ -73,10 +84,23 @@ io.on('connection', socket => {
   socket.on('drawing-end', (room) => {
     socket.to(room).emit('drawing-end')
   });
+  socket.on('start-game', (room) => {
+    roundFunc(room);
+    setInterval(roundFunc, 90000, room);
+  });
+  emitter.on('start-round', (room, next) => {
+    var keys = Object.keys(words);
+    current_word = words[keys[Math.floor(keys.length * Math.random())]];
+    io.to(next).emit('round-begin', current_word, room);
+  });
+  socket.on('word-length', (room, num) => {
+    socket.to(room).emit('guess-length', num);
+  });
   socket.on('disconnect', () => {
     getUserRooms(socket).forEach(room => {
       socket.to(room).emit('user-disconnected', rooms[room].users[socket.id]);
       delete rooms[room].users[socket.id];
+      delete rooms[room].played[socket.id];
     })
   });
 })
@@ -86,4 +110,20 @@ function getUserRooms(socket) {
     if (room.users[socket.id] != null) names.push(name)
     return names;
   }, []);
+}
+
+function roundFunc(room) {
+  if (getKeyByValue(rooms[room].played, false) === undefined)
+  {
+    round_number = round_number + 1;
+    Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
+  }
+  next = getKeyByValue(rooms[room].played, false);
+  current_player = next;
+  rooms[room].played[next] = true;
+  emitter.emit('start-round', room, next);
+}
+
+function getKeyByValue(object, value) {
+  return Object.keys(object).find(key => object[key] === value);
 }
