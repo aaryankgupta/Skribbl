@@ -7,6 +7,7 @@ const room_container = document.getElementById('room-container')
 const word_container = document.getElementById('word-container')
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
+var guessed = false;
 
 if (messageForm != null){
     if (roomPass != ''){
@@ -22,7 +23,7 @@ if (messageForm != null){
         e.preventDefault()
         const message = messageInput.value
         appendMessage(`You: ${  message}`)
-        socket.emit('send-chat-message', roomName, message)
+        socket.emit('send-chat-message', roomName, message, guessed)
         messageInput.value = ''
     });
 
@@ -96,19 +97,37 @@ if (messageForm != null){
     socket.on('drawing-data', drawingEvent);
     socket.on('drawing-end', () => ctx.beginPath());
     socket.on('round-begin', (word, room) => {
+        alert(`You are drawing now. Your word is: ${word}`);
         word_container.innerHTML = word;
         socket.emit('word-length', room, word.length);
+        guessed = false;
     });
     socket.on('guess-length', (num) => {
         var guess = '*'.repeat(num);
         word_container.innerHTML = guess;
+        guessed = false;
+    });
+    socket.on('correct-guess', () => {
+        guessed = true;
+        appendMessage('You guessed correctly');
+    });
+    socket.on('made-guess', (name) => {
+        appendMessage(`${name} guessed the word correctly`);
     });
 }
 
 
 
-socket.on('chat-message',data => {
-    appendMessage(`${data.name}: ${data.message}`)
+socket.on('chat-message',(data, guess_this) => {
+    if(!guess_this)
+        appendMessage(`${data.name}: ${data.message}`)
+    else
+    {
+        if(guessed)
+        {
+            appendMessage(`${data.name}: ${data.message}`)
+        }
+    }
 });
 
 socket.on('user-connected', name => {

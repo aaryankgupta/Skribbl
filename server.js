@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 
 const rooms = {};
 
-const words = ['hello', 'bye', 'sample1', 'sample2'];
+const words = ['angel', 'angry', 'eyeball', 'pizza', 'book', 'giraffe', 'bible', 'cat', 'lion', 'stairs', 'tire', 'sun', 'camera', 'river'];
 
 var current_word = null;
 
@@ -75,8 +75,23 @@ io.on('connection', socket => {
     rooms[room].played[socket.id] = false;
     socket.to(room).emit('user-connected', name);
   });
-  socket.on('send-chat-message', (room, message) => {
-    socket.to(room).emit('chat-message', { message: message, name: rooms[room].users[socket.id]});
+  socket.on('send-chat-message', (room, message, guessed) => {
+    if(!guessed)
+    {
+      if(message == current_word)
+      {
+        io.to(socket.id).emit('correct-guess');
+        socket.to(room).emit('made-guess', rooms[room].users[socket.id])
+      }
+      else
+      {
+        socket.to(room).emit('chat-message', { message: message, name: rooms[room].users[socket.id]}, guessed);
+      }
+    }
+    else
+    {
+     socket.to(room).emit('chat-message', { message: message, name: rooms[room].users[socket.id]}, guessed);
+    }
   });
   socket.on('drawing', (room, data) => {
     socket.to(room).emit('drawing-data', data)
@@ -88,12 +103,7 @@ io.on('connection', socket => {
     roundFunc(room);
     setInterval(roundFunc, 90000, room);
   });
-  emitter.on('start-round', (room, next) => {
-    var keys = Object.keys(words);
-    current_word = words[keys[Math.floor(keys.length * Math.random())]];
-    io.to(next).emit('round-begin', current_word, room);
-  });
-  socket.on('word-length', (room, num) => {
+    socket.on('word-length', (room, num) => {
     socket.to(room).emit('guess-length', num);
   });
   socket.on('disconnect', () => {
@@ -104,6 +114,11 @@ io.on('connection', socket => {
     })
   });
 })
+emitter.on('start-round', (room, next) => {
+    var keys = Object.keys(words);
+    current_word = words[keys[Math.floor(keys.length * Math.random())]];
+    io.to(next).emit('round-begin', current_word, room);
+  });
 
 function getUserRooms(socket) {
   return Object.entries(rooms).reduce((names, [name, room]) => {
