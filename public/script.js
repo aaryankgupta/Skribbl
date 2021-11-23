@@ -5,6 +5,7 @@ const startForm = document.getElementById('start-button-container')
 const messageInput = document.getElementById('message-input')
 const room_container = document.getElementById('room-container')
 const word_container = document.getElementById('word-container')
+const votekick_container = document.getElementById('votekick-container')
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var guessed = false;
@@ -29,6 +30,7 @@ if (messageForm != null){
 
     startForm.addEventListener('submit', e => {
         e.preventDefault()
+        // console.log("game_start")
         socket.emit('start-game', roomName)
     });
 
@@ -103,6 +105,19 @@ if (messageForm != null){
         guessed = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
+
+    function vote(){
+      socket.emit('send-vote', roomName, name )
+    }
+
+    socket.on('votekick-message', (voter_name, curr_player_name, vote, num_palyer, kicked_out) =>{ 
+      if(Boolean(curr_player_name!=name)){
+        if(kicked_out) appendMessage(`${curr_player_name} has been kicked out!!`)
+        else appendMessage(`'${voter_name}' is voting to kick '${curr_player_name}'  (${vote}/${num_palyer-1})`)
+      }
+      else if(kicked_out) alert(`You have been kicked out !!`)
+    });
+
     socket.on('guess-length', (num) => {
         var guess = '*'.repeat(num);
         word_container.innerHTML = guess;
@@ -117,8 +132,6 @@ if (messageForm != null){
         appendMessage(`${name} guessed the word correctly`);
     });
 }
-
-
 
 socket.on('chat-message',(data, guess_this) => {
     if(!guess_this)
@@ -150,8 +163,13 @@ socket.on('room-created', room => {
     room_container.append(roomLink);
 });
 
+socket.on('redirect', function(destination) {
+  window.location.href = destination;
+});
+
 function appendMessage(message) {
     const messageElement = document.createElement('div')
     messageElement.innerText = message
     messageContainer.append(messageElement)
 }
+

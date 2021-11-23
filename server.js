@@ -34,7 +34,7 @@ app.post('/room', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/');
   }
-  rooms[req.body.room] = { users: {}, id: null, played: {} };
+  rooms[req.body.room] = { users: {}, id: null, played: {}, vote: 0 };
   res.redirect(req.body.room);
   io.emit('room-created', req.body.room);
 })
@@ -93,6 +93,22 @@ io.on('connection', socket => {
      socket.to(room).emit('chat-message', { message: message, name: rooms[room].users[socket.id]}, guessed);
     }
   });
+  
+  // utkarsh's part
+  socket.on('send-vote', (room , voter_name) => {
+    rooms[room].vote++; // vote for each room would be made 0 after each round
+    const num_players = Object.keys(rooms[room].users).length 
+    let kicked_out = Boolean(rooms[room].vote == num_players-1)
+    io.to(room).emit('votekick-message', voter_name , rooms[room].users[current_player], rooms[room].vote, num_players, kicked_out)
+    if(kicked_out){
+      delete rooms[room].users[current_player];
+      delete rooms[room].played[current_player];
+      socket.to(current_player).emit('redirect', '/');
+      roundFunc(room);
+      setInterval(roundFunc, 90000, room);
+    }
+  });
+
   socket.on('drawing', (room, data) => {
     socket.to(room).emit('drawing-data', data)
   });
@@ -103,7 +119,7 @@ io.on('connection', socket => {
     roundFunc(room);
     setInterval(roundFunc, 90000, room);
   });
-    socket.on('word-length', (room, num) => {
+  socket.on('word-length', (room, num) => {
     socket.to(room).emit('guess-length', num);
   });
   socket.on('disconnect', () => {
@@ -136,6 +152,7 @@ function roundFunc(room) {
   next = getKeyByValue(rooms[room].played, false);
   current_player = next;
   rooms[room].played[next] = true;
+  rooms[room].vote = 0;
   emitter.emit('start-round', room, next);
 }
 
