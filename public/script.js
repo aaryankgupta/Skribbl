@@ -5,6 +5,8 @@ const startForm = document.getElementById('start-button-container')
 const messageInput = document.getElementById('message-input')
 const room_container = document.getElementById('room-container')
 const word_container = document.getElementById('word-container')
+const time_container = document.getElementById('time')
+var time = 90;
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var guessed = false;
@@ -91,19 +93,31 @@ if (messageForm != null){
         ctx.beginPath();
         ctx.moveTo(data.x2*canvas.width, data.y2*canvas.height);
       }
+      function timeFunc()
+      {
+          time = time - 1;
+          time_container.innerHTML = `${time} seconds`;
+      }
+
     canvas.addEventListener("mousedown", startDraw);
     canvas.addEventListener("mouseup", endDraw);
     canvas.addEventListener("mousemove", Draw);
     socket.on('drawing-data', drawingEvent);
     socket.on('drawing-end', () => ctx.beginPath());
     socket.on('round-begin', (word, room) => {
+        time = 90;
+        timeFunc();
+        setInterval(timeFunc, 1000);
         alert(`You are drawing now. Your word is: ${word}`);
         word_container.innerHTML = word;
         socket.emit('word-length', room, word.length);
-        guessed = false;
+        guessed = true;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
     socket.on('guess-length', (num) => {
+        time = 90;
+        timeFunc();
+        setInterval(timeFunc, 1000);
         var guess = '*'.repeat(num);
         word_container.innerHTML = guess;
         guessed = false;
