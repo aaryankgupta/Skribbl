@@ -26,6 +26,8 @@ var round_number = 1;
 
 var current_player = null;
 
+var roundInterval;
+
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
 });
@@ -104,6 +106,7 @@ io.on('connection', socket => {
       delete rooms[room].users[current_player];
       delete rooms[room].played[current_player];
       socket.to(current_player).emit('redirect', '/');
+      clearInterval(roundInterval);
       roundFunc(room);
       setInterval(roundFunc, 90000, room);
     }
@@ -116,8 +119,9 @@ io.on('connection', socket => {
     socket.to(room).emit('drawing-end')
   });
   socket.on('start-game', (room) => {
+    clearInterval(roundInterval);
     roundFunc(room);
-    setInterval(roundFunc, 90000, room);
+    roundInterval = setInterval(roundFunc, 90000, room);
   });
   socket.on('word-length', (room, num) => {
     socket.to(room).emit('guess-length', num);
