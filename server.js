@@ -91,6 +91,7 @@ io.on('connection', socket => {
     socket.to(room).emit('user-connected', name);
     if(game_on[room])
     {
+        io.to(socket.id).emit('disable-start-button');
         io.to(socket.id).emit('time', time[room]);
         io.to(socket.id).emit('guess-length', current_word[room].length);
     }
@@ -142,6 +143,7 @@ io.on('connection', socket => {
   });
   socket.on('start-game', (room) => {
     game_on[room] = true;
+    socket.to(room).emit('disable-start-button');
     clearInterval(roundInterval[room]);
     roundFunc(room);
     clearInterval(timeInterval[room]);

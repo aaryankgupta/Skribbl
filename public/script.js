@@ -8,6 +8,7 @@ const word_container = document.getElementById('word-container')
 const votekick_container = document.getElementById('votekick-container')
 const time_container = document.getElementById('time-container')
 const votekick_button = document.getElementById('votekick-button')
+const start_button = document.getElementById('start-button')
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
@@ -34,7 +35,12 @@ if (messageForm != null){
     startForm.addEventListener('submit', e => {
         e.preventDefault()
         // console.log("game_start")
+        start_button.disabled = true;
         socket.emit('start-game', roomName)
+    });
+
+    socket.on('disable-start-button',() => {
+      start_button.disabled = true;
     });
 
     canvas.height = window.innerHeight*0.7;
