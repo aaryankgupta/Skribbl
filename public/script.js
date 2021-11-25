@@ -12,8 +12,6 @@ const votekick_button = document.getElementById('votekick-button')
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var guessed = false;
-var time = 90;
-var timeInterval;
 
 if (messageForm != null){
     if (roomPass != ''){
@@ -98,27 +96,18 @@ if (messageForm != null){
         ctx.beginPath();
         ctx.moveTo(data.x2*canvas.width, data.y2*canvas.height);
       }
-      function timeDec()
-      {
-          time = time - 1;
-          time_container.innerHTML = `Time Left : ${time}`;
-      }
-    canvas.addEventListener("mousedown", startDraw);
-    canvas.addEventListener("mouseup", endDraw);
-    canvas.addEventListener("mousemove", Draw);
     socket.on('drawing-data', drawingEvent);
     socket.on('drawing-end', () => ctx.beginPath());
     socket.on('round-begin', (word, room) => {
+        canvas.addEventListener("mousedown", startDraw);
+        canvas.addEventListener("mouseup", endDraw);
+        canvas.addEventListener("mousemove", Draw);
         votekick_button.disabled = true;
         alert(`You are drawing now. Your word is: ${word}`);
         word_container.innerHTML = word;
         socket.emit('word-length', room, word.length);
         guessed = true;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        time = 90;
-        clearInterval(timeInterval);
-        timeDec();
-        timeInterval = setInterval(timeDec, 1000);
     });
 
     function vote(){
@@ -135,15 +124,14 @@ if (messageForm != null){
     });
 
     socket.on('guess-length', (num) => {
+        canvas.removeEventListener("mousedown", startDraw);
+        canvas.removeEventListener("mouseup", endDraw);
+        canvas.removeEventListener("mousemove", Draw);
         votekick_button.disabled = false;
         var guess = '*'.repeat(num);
         word_container.innerHTML = guess;
         guessed = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
-        time = 90;
-        clearInterval(timeInterval);
-        timeDec();
-        timeInterval = setInterval(timeDec, 1000);
     });
     socket.on('correct-guess', () => {
         guessed = true;
@@ -151,6 +139,9 @@ if (messageForm != null){
     });
     socket.on('made-guess', (name) => {
         appendMessage(`${name} guessed the word correctly`);
+    });
+    socket.on('time', (time) => {
+        time_container.innerHTML = `Time Left: ${time}`;
     });
 }
 

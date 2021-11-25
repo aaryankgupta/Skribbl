@@ -30,6 +30,10 @@ var current_player = {};
 
 var roundInterval = {};
 
+var timeInterval = {};
+
+var time = {};
+
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
 });
@@ -44,7 +48,9 @@ app.post('/room', (req, res) => {
   game_on[req.body.room] = false;
   current_player[req.body.room] = null;
   roundInterval[req.body.room] = null;
+  timeInterval[req.body.room] = null;
   res.redirect(req.body.room);
+  time[req.body.room] = 0;
   io.emit('room-created', req.body.room);
 })
 
@@ -85,6 +91,7 @@ io.on('connection', socket => {
     socket.to(room).emit('user-connected', name);
     if(game_on[room])
     {
+        io.to(socket.id).emit('time', time[room]);
         io.to(socket.id).emit('guess-length', current_word[room].length);
     }
   });
@@ -119,7 +126,11 @@ io.on('connection', socket => {
       socket.to(current_player[room]).emit('redirect', '/');
       clearInterval(roundInterval[room]);
       roundFunc(room);
-      setInterval(roundFunc, 90000, room);
+      clearInterval(timeInterval[room]);
+      time[room] = 90;
+      timeDec(room);
+      timeInterval[room] = setInterval(timeDec, 1000, room);
+      roundInterval[room] = setInterval(roundFunc, 90000, room);
     }
   });
 
@@ -133,6 +144,10 @@ io.on('connection', socket => {
     game_on[room] = true;
     clearInterval(roundInterval[room]);
     roundFunc(room);
+    clearInterval(timeInterval[room]);
+    time[room] = 90;
+    timeDec(room);
+    timeInterval[room] = setInterval(timeDec, 1000, room);
     roundInterval[room] = setInterval(roundFunc, 90000, room);
   });
   socket.on('word-length', (room, num) => {
@@ -149,7 +164,11 @@ io.on('connection', socket => {
           {
               clearInterval(roundInterval[room]);
               roundFunc(room);
-              setInterval(roundFunc, 90000, room);
+              clearInterval(timeInterval[room]);
+              time[room] = 90;
+              timeDec(room);
+              timeInterval[room] = setInterval(timeDec, 1000, room);
+              roundInterval[room] = setInterval(roundFunc, 90000, room);
           }
       }
     })
@@ -174,6 +193,7 @@ function roundFunc(room) {
     round_number[room] = round_number[room] + 1;
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
   }
+  time[room] = 90;
   next = getKeyByValue(rooms[room].played, false);
   current_player[room] = next;
   rooms[room].played[next] = true;
@@ -183,4 +203,9 @@ function roundFunc(room) {
 
 function getKeyByValue(object, value) {
   return Object.keys(object).find(key => object[key] === value);
+}
+
+function timeDec(room) {
+  time[room] = time[room] - 1;
+  io.to(room).emit('time', time[room]);
 }
