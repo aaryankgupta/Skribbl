@@ -29,7 +29,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-const game_time = 90
+const game_time = 2
 const num_round = 3
 
 const rooms = {};
@@ -64,6 +64,10 @@ client.query('Select * from scores', (err, res) =>{
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
 });
+
+app.get('/leaderboard',(req,res) =>{
+  res.render('leaderboard');
+})
 
 app.post('/room', (req, res) => {
   if (rooms[req.body.room] != null) {
@@ -114,8 +118,8 @@ console.log('Listening on port *:5500'));
 io.on('connection', socket => {
   socket.on('new-user', (room,name) => {
     socket.join(room);
-    rooms[room].scores[name] = 0; // On connection scores are made 0
-    rooms[room].total_scores[name] = 0;
+    rooms[room].scores[socket.id] = 0; // On connection scores are made 0
+    rooms[room].total_scores[socket.id] = 0;
     rooms[room].users[socket.id] = name;
     rooms[room].played[socket.id] = false;
     socket.to(room).emit('user-connected', name);
@@ -172,16 +176,15 @@ io.on('connection', socket => {
   // 30-15 ==> 400
   // 15-00 ==> 200
   // score of current_player
-  socket.on('update-score', (room,name)=> {   
+  socket.on('update-score', (room)=> {   
     // Updating guess count also
-    rooms[room].scores[name] = (Math.floor(time[room]/15)+1)*200
-    rooms[room].total_scores[name] += rooms[room].scores[name]
+    rooms[room].scores[socket.id] = (Math.floor(time[room]/15)+1)*200
+    rooms[room].total_scores[socket.id] += rooms[room].scores[socket.id]
     guess_count[room]++;
     if(guess_count[room] == Object.keys(rooms[room].users).length -1){
 
-      const curr_player_name = rooms[room].users[current_player[room]]
-      rooms[room].scores[curr_player_name] = 1200;
-      rooms[room].total_scores[curr_player_name] += rooms[room].scores[curr_player_name];
+      rooms[room].scores[current_player] = 1200;
+      rooms[room].total_scores[current_player] += rooms[room].scores[current_player];
       clearInterval(roundInterval[room]);
       roundFunc(room); // Start new round
       clearInterval(timeInterval[room]);
@@ -192,8 +195,8 @@ io.on('connection', socket => {
     }
   });
 
-  socket.on('initialize-score' ,(room,name) =>{
-    rooms[room].scores[name] = 0
+  socket.on('initialize-score' ,(room) =>{
+    rooms[room].scores[socket.id] = 0
   })
 
   socket.on('drawing', (room, data) => {
@@ -258,6 +261,21 @@ function roundFunc(room) {
   {
     round_number[room] = round_number[room] + 1;
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
+    if( round_number[room] == num_round+1 ){
+      
+      io.to(room).emit('redirect','/leaderboard')
+      game_on[room] = false;
+      clearInterval(roundInterval[room])
+      clearInterval(timeInterval[room])
+      delete current_word[room];
+      delete round_number[room];
+      delete current_player[room];
+      delete guess_count[room];
+      delete roundInterval[room];
+      delete timeInterval[room];
+      delete rooms[room]
+      return;
+    }
   }
   time[room] = game_time;
   next = getKeyByValue(rooms[room].played, false);
@@ -267,15 +285,14 @@ function roundFunc(room) {
 
   const num_palyer = Object.keys(rooms[room].users).length 
   if(Boolean(guess_count[room] != num_palyer-1)){
-    const curr_player_name = rooms[room].users[current_player[room]]
-    rooms[room].scores[curr_player_name] = Math.floor(guess_count[room]/(num_palyer-1))*1200; // fraction of correct guess * total points
-    rooms[room].total_scores[curr_player_name] += rooms[room].scores[curr_player_name];
+    rooms[room].scores[current_player] = Math.floor(guess_count[room]/(num_palyer-1))*1200; // fraction of correct guess * total points
+    rooms[room].total_scores[current_player] += rooms[room].scores[current_player];
   }
   guess_count[room] = 0;
 
   io.to(room).emit('clear-score-board');
-  io.to(room).emit('edit-score-board', rooms[room].total_scores);
-  io.to(room).emit('display-scores', rooms[room].scores );
+  io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
+  io.to(room).emit('display-scores', rooms[room].scores , rooms[room].users);
   emitter.emit('start-round', room, next);
 }
 

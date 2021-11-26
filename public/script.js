@@ -131,11 +131,15 @@ if (messageForm != null){
       else if(kicked_out) alert(`You have been kicked out !!`)
     });
 
-    socket.on('display-scores' , (scores_dict) =>{
-      str = JSON.stringify(scores_dict, null, 4)
+    socket.on('display-scores' , (scores_dict, name_dict) =>{
+      new_dict = {};
+      for([key,val] of Object.entries(scores_dict)){
+        new_dic[name_dict[key]] = val;
+      }
+      str = JSON.stringify(new_dict, null, 4)
       console.log(str)
       alert(str);
-      socket.emit('initialize-score',roomName,name)
+      socket.emit('initialize-score',roomName)
     })
 
     // popover
@@ -153,7 +157,7 @@ if (messageForm != null){
         guessed = true;
         appendMessage('You guessed correctly');
         // socket.emit('update-guess-count');
-        socket.emit('update-score', roomName, name );
+        socket.emit('update-score', roomName);
     });
     socket.on('made-guess', (name) => {
         appendMessage(`${name} guessed the word correctly`);
@@ -183,10 +187,10 @@ socket.on('clear-score-board', () => {
   score_container.innerText = "";
 })
 
-socket.on('edit-score-board', (scores_dict) => {
+socket.on('edit-score-board', (scores_dict , name_dict) => {
   for([key,val] of Object.entries(scores_dict)){
     var scoreElement = document.createElement('div')
-    scoreElement.innerText = `${key} : ${val}`
+    scoreElement.innerText = `${name_dict[key]} : ${val}`
     score_container.append(scoreElement)
   }
 
