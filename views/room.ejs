@@ -14,17 +14,18 @@
       padding: 0;
       margin: 0;
       display: flex;
+      background-image: url('/images/background.jpeg');
     }
 
     #message-container {
-      width: 30%;
+      width: 24%;
       max-width: 1200px;
       margin-left: auto;
       margin-right: 0;
     }
 
     #message-container div {
-      background-color: rgb(60,179,113);
+      background-color: #808080;
       padding: 5px;
     }
 
@@ -36,15 +37,29 @@
       position: absolute;
       padding-bottom: 100px;
       bottom: 0;
-      width: 30%;
+      width: 100%;
       max-width: 1200px;
-      background-color: white;
       margin-bottom: 10px;
-      right: 0;
+      margin-right: -10px;
+      right: -750px;
     }
 
     #message-input {
-      width: 80%;
+      width: 30%;
+    }
+
+    #votekick-container {
+        position: absolute;
+        top: 800px;
+    }
+
+
+    #word-container {
+        position: absolute;
+        top: 0;
+        left: 1000px;
+        height: 20px;
+        font-weight: bold;
     }
 
     #whiteboard {
@@ -88,16 +103,17 @@
     }
 
     .color.grey {
-      background-color: grey;
+      background-image: url('/images/eraser.jpg');
+      background-size: 100% 100%;
     }
 
     .color.white {
-      background-image: white;
+      background-color: white;
     }
   </style>
 </head>
 <body>
-  <canvas id="canvas" style="border: 2px solid">Your Browser doesn't support Canvas</canvas>
+  <canvas id="canvas" style="border: 2px solid; background: white;">Your Browser doesn't support Canvas</canvas>
   <div id="colors">
   <div class="color black" onclick="change('black')"></div>
   <div class="color blue" onclick="change('blue')"></div>
@@ -120,7 +136,7 @@
   <div id="time-container"></div>
   <!-- utkarsh's part -->
   <div id="votekick-container">
-    <button type="button" id="votekick-button" onclick="vote()" class="btn btn-success" disabled>Votekick</button>
+    <button type="button" id="votekick-button" onclick="vote()" class="btn btn-warning" disabled>Votekick</button>
   </div>
 
   <div id="message-container"></div>

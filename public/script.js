@@ -23,12 +23,12 @@ if (messageForm != null){
         }
     }
     const name = prompt('What is your name?');
-    appendMessage('You joined');
+    appendMessage('You joined', "#90EE90");
     socket.emit('new-user', roomName, name);
     messageForm.addEventListener('submit', e => {
         e.preventDefault()
         const message = messageInput.value
-        appendMessage(`You: ${  message}`)
+        appendMessage(`You: ${  message}`, "#000000")
         socket.emit('send-chat-message', roomName, message, guessed)
         messageInput.value = ''
     });
@@ -123,10 +123,10 @@ if (messageForm != null){
       socket.emit('send-vote', roomName, name )
     }
 
-    socket.on('votekick-message', (voter_name, curr_player_name, vote, num_palyer, kicked_out) =>{ 
-      if(Boolean(curr_player_name!=name)){
-        if(kicked_out) appendMessage(`${curr_player_name} has been kicked out!!`)
-        else appendMessage(`'${voter_name}' is voting to kick '${curr_player_name}'  (${vote}/${num_palyer-1})`)
+    socket.on('votekick-message', (voter_name, curr_player_name, vote, num_palyer, kicked_out, kick_socket) =>{ 
+      if(socket.id != kick_socket){
+        if(kicked_out) appendMessage(`${curr_player_name} has been kicked out!!`, "#FF0000")
+        else appendMessage(`'${voter_name}' is voting to kick '${curr_player_name}'  (${vote}/${num_palyer-1})`, "#FFFF00")
       }
       else if(kicked_out) alert(`You have been kicked out !!`)
     });
@@ -149,12 +149,12 @@ if (messageForm != null){
     });
     socket.on('correct-guess', () => {
         guessed = true;
-        appendMessage('You guessed correctly');
+        appendMessage('You guessed correctly', "#90EE90");
         // socket.emit('update-guess-count');
         socket.emit('update-score', roomName, name );
     });
     socket.on('made-guess', (name) => {
-        appendMessage(`${name} guessed the word correctly`);
+        appendMessage(`${name} guessed the word correctly`, "#90EE90");
     });
     socket.on('time', (time) => {
         time_container.innerHTML = `Time Left: ${time}`;
@@ -163,18 +163,18 @@ if (messageForm != null){
 
 socket.on('chat-message',(data, guess_this) => {
     if(!guess_this)
-        appendMessage(`${data.name}: ${data.message}`)
+        appendMessage(`${data.name}: ${data.message}`, "#000000")
     else
     {
         if(guessed)
         {
-            appendMessage(`${data.name}: ${data.message}`)
+            appendMessage(`${data.name}: ${data.message}`, "#00FFFF")
         }
     }
 });
 
 socket.on('user-connected', name => {
-    appendMessage(`${name} connected`)
+    appendMessage(`${name} connected`, "#90EE90")
 });
 
 socket.on('clear-score-board', () => {
@@ -191,7 +191,7 @@ socket.on('edit-score-board', (scores_dict) => {
 });
 
 socket.on('user-disconnected', name => {
-    appendMessage(`${name} disconnected`)
+    appendMessage(`${name} disconnected`, "#FFFF00")
 });
 
 socket.on('room-created', room => {
@@ -208,9 +208,10 @@ socket.on('redirect', function(destination) {
   window.location.href = destination;
 });
 
-function appendMessage(message) {
+function appendMessage(message, color) {
     const messageElement = document.createElement('div')
     messageElement.innerText = message
+    messageElement.style.color = color
     messageContainer.append(messageElement)
 }
 

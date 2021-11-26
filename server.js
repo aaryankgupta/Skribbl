@@ -7,15 +7,15 @@ var emitter = new EventEmitter();
 // database part
 const {Client} = require('pg')
 
-const client = new Client({
+/*const client = new Client({
     host: "localhost",
-    user: "utkarsh",
+    user: "sankalp",
     port: 5432,
-    password: "Utkarsh@2002",
+    password: "v2a4s10h0u2",
     database: "skribbl_scores"
 })
 
-client.connect();
+client.connect();*/
 
 const server = require('http').Server(app);
 const io = require('socket.io')(server, {
@@ -51,14 +51,14 @@ var time = {};
 
 var guess_count = {};
 
-client.query('Select * from scores', (err, res) =>{
+/*client.query('Select * from scores', (err, res) =>{
   if(!err){
       console.log(res.rows[2].users);
   }else{
       console.log(err.message);
   }
   client.end();
-})
+})*/
 
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
@@ -149,7 +149,7 @@ io.on('connection', socket => {
     rooms[room].vote++; // vote for each room would be made 0 after each round
     const num_players = Object.keys(rooms[room].users).length 
     let kicked_out = Boolean(rooms[room].vote == num_players-1)
-    io.to(room).emit('votekick-message', voter_name , rooms[room].users[current_player[room]], rooms[room].vote, num_players, kicked_out)
+    io.to(room).emit('votekick-message', voter_name , rooms[room].users[current_player[room]], rooms[room].vote, num_players, kicked_out, current_player[room])
     if(kicked_out){
       delete rooms[room].users[current_player[room]];
       delete rooms[room].played[current_player[room]];
