@@ -132,8 +132,10 @@ if (messageForm != null){
     });
 
     socket.on('display-scores' , (scores_dict) =>{
-      alert(scores_dict);
-      socket.emit('initialize-score',roomName,room)
+      str = JSON.stringify(scores_dict, null, 4)
+      console.log(str)
+      alert(str);
+      socket.emit('initialize-score',roomName,name)
     })
 
     // popover

@@ -30,6 +30,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
 const game_time = 90
+const num_round = 3
 
 const rooms = {};
 
@@ -170,7 +171,6 @@ io.on('connection', socket => {
   // 45-30 ==> 600
   // 30-15 ==> 400
   // 15-00 ==> 200
-
   // score of current_player
   socket.on('update-score', (room,name)=> {   
     // Updating guess count also
@@ -178,14 +178,10 @@ io.on('connection', socket => {
     rooms[room].total_scores[name] += rooms[room].scores[name]
     guess_count[room]++;
     if(guess_count[room] == Object.keys(rooms[room].users).length -1){
-      // console.log("here")
-      const curr_player_name = rooms[room].users[current_player]
+
+      const curr_player_name = rooms[room].users[current_player[room]]
       rooms[room].scores[curr_player_name] = 1200;
       rooms[room].total_scores[curr_player_name] += rooms[room].scores[curr_player_name];
-      guess_count[room] = 0;
-      io.to(room).emit('clear-score-board');
-      io.to(room).emit('edit-score-board', rooms[room].total_scores);
-      io.to(room).emit('display-scores', rooms[room].scores );
       clearInterval(roundInterval[room]);
       roundFunc(room); // Start new round
       clearInterval(timeInterval[room]);
@@ -263,21 +259,23 @@ function roundFunc(room) {
     round_number[room] = round_number[room] + 1;
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
   }
-  // const num_palyer = Object.keys(rooms[room].users).length 
-  // if(guess_count != num_palyer){
-  //   const curr_player_name = rooms[room].users[current_player]
-  //   rooms[room].scores[curr_player_name] = Math.floor(guess_count/(num_palyer-1))*1200; // fraction of correct guess * total points
-  //   rooms[room].total_scores[curr_player_name] += rooms[room].scores[curr_player_name];
-  // }
-  // guess_count[room] = 0;
-  // io.to(room).emit('clear-score-board');
-  // io.to(room).emit('edit-score-board', rooms[room].total_scores);
-  // io.to(room).emit('display-scores', rooms[room].scores );
   time[room] = game_time;
   next = getKeyByValue(rooms[room].played, false);
   current_player[room] = next;
   rooms[room].played[next] = true;
   rooms[room].vote = 0;
+
+  const num_palyer = Object.keys(rooms[room].users).length 
+  if(Boolean(guess_count[room] != num_palyer-1)){
+    const curr_player_name = rooms[room].users[current_player[room]]
+    rooms[room].scores[curr_player_name] = Math.floor(guess_count[room]/(num_palyer-1))*1200; // fraction of correct guess * total points
+    rooms[room].total_scores[curr_player_name] += rooms[room].scores[curr_player_name];
+  }
+  guess_count[room] = 0;
+
+  io.to(room).emit('clear-score-board');
+  io.to(room).emit('edit-score-board', rooms[room].total_scores);
+  io.to(room).emit('display-scores', rooms[room].scores );
   emitter.emit('start-round', room, next);
 }
 
