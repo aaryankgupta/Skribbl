@@ -9,6 +9,7 @@ const votekick_container = document.getElementById('votekick-container')
 const time_container = document.getElementById('time-container')
 const votekick_button = document.getElementById('votekick-button')
 const start_button = document.getElementById('start-button')
+const score_container = document.getElementById('score-container')
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
@@ -174,6 +175,19 @@ socket.on('chat-message',(data, guess_this) => {
 
 socket.on('user-connected', name => {
     appendMessage(`${name} connected`)
+});
+
+socket.on('clear-score-board', () => {
+  score_container.innerText = "";
+})
+
+socket.on('edit-score-board', (scores_dict) => {
+  for([key,val] of Object.entries(scores_dict)){
+    var scoreElement = document.createElement('div')
+    scoreElement.innerText = `${key} : ${val}`
+    score_container.append(scoreElement)
+  }
+
 });
 
 socket.on('user-disconnected', name => {

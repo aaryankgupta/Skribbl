@@ -29,6 +29,8 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
+const game_time = 90
+
 const rooms = {};
 
 const words = ['angel', 'angry', 'eyeball', 'pizza', 'book', 'giraffe', 'bible', 'cat', 'lion', 'stairs', 'tire', 'sun', 'camera', 'river'];
@@ -66,7 +68,7 @@ app.post('/room', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/');
   }
-  rooms[req.body.room] = { users: {}, id: null, played: {}, vote: 0 , scores: {}};
+  rooms[req.body.room] = { users: {}, id: null, played: {}, vote: 0 , scores: {}, total_scores: {}};
   current_word[req.body.room] = null;
   round_number[req.body.room] = 1;
   game_on[req.body.room] = false;
@@ -112,6 +114,7 @@ io.on('connection', socket => {
   socket.on('new-user', (room,name) => {
     socket.join(room);
     rooms[room].scores[name] = 0; // On connection scores are made 0
+    rooms[room].total_scores[name] = 0;
     rooms[room].users[socket.id] = name;
     rooms[room].played[socket.id] = false;
     socket.to(room).emit('user-connected', name);
@@ -154,10 +157,10 @@ io.on('connection', socket => {
       clearInterval(roundInterval[room]);
       roundFunc(room);
       clearInterval(timeInterval[room]);
-      time[room] = 90;
+      time[room] = game_time;
       timeDec(room);
       timeInterval[room] = setInterval(timeDec, 1000, room);
-      roundInterval[room] = setInterval(roundFunc, 90000, room);
+      roundInterval[room] = setInterval(roundFunc, game_time*1000, room);
     }
   });
 
@@ -167,21 +170,29 @@ io.on('connection', socket => {
   // 45-30 ==> 600
   // 30-15 ==> 400
   // 15-00 ==> 200
+
+  // score of current_player
   socket.on('update-score', (room,name)=> {   
     // Updating guess count also
-    rooms[room].scores[name] = (time[room]/15+1)*200
+    rooms[room].scores[name] = (Math.floor(time[room]/15)+1)*200
+    rooms[room].total_scores[name] += rooms[room].scores[name]
     guess_count[room]++;
     if(guess_count[room] == Object.keys(rooms[room].users).length -1){
       // console.log("here")
-      io.to(room).emit('display-scores', rooms[room].scores )
+      const curr_player_name = rooms[room].users[current_player]
+      rooms[room].scores[curr_player_name] = 1200;
+      rooms[room].total_scores[curr_player_name] += rooms[room].scores[curr_player_name];
       guess_count[room] = 0;
+      io.to(room).emit('clear-score-board');
+      io.to(room).emit('edit-score-board', rooms[room].total_scores);
+      io.to(room).emit('display-scores', rooms[room].scores );
       clearInterval(roundInterval[room]);
       roundFunc(room); // Start new round
       clearInterval(timeInterval[room]);
-      time[room] = 90;
+      time[room] = game_time;
       timeDec(room);
       timeInterval[room] = setInterval(timeDec, 1000, room);
-      roundInterval[room] = setInterval(roundFunc, 90000, room);
+      roundInterval[room] = setInterval(roundFunc, game_time*1000, room);
     }
   });
 
@@ -202,10 +213,10 @@ io.on('connection', socket => {
     clearInterval(roundInterval[room]);
     roundFunc(room);
     clearInterval(timeInterval[room]);
-    time[room] = 90;
+    time[room] = game_time;
     timeDec(room);
     timeInterval[room] = setInterval(timeDec, 1000, room);
-    roundInterval[room] = setInterval(roundFunc, 90000, room);
+    roundInterval[room] = setInterval(roundFunc, game_time*1000, room);
   });
   socket.on('word-length', (room, num) => {
     socket.to(room).emit('guess-length', num);
@@ -223,10 +234,10 @@ io.on('connection', socket => {
               clearInterval(roundInterval[room]);
               roundFunc(room);
               clearInterval(timeInterval[room]);
-              time[room] = 90;
+              time[room] = game_time;
               timeDec(room);
               timeInterval[room] = setInterval(timeDec, 1000, room);
-              roundInterval[room] = setInterval(roundFunc, 90000, room);
+              roundInterval[room] = setInterval(roundFunc, game_time*1000, room);
           }
       }
     })
@@ -252,7 +263,17 @@ function roundFunc(room) {
     round_number[room] = round_number[room] + 1;
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
   }
-  time[room] = 90;
+  // const num_palyer = Object.keys(rooms[room].users).length 
+  // if(guess_count != num_palyer){
+  //   const curr_player_name = rooms[room].users[current_player]
+  //   rooms[room].scores[curr_player_name] = Math.floor(guess_count/(num_palyer-1))*1200; // fraction of correct guess * total points
+  //   rooms[room].total_scores[curr_player_name] += rooms[room].scores[curr_player_name];
+  // }
+  // guess_count[room] = 0;
+  // io.to(room).emit('clear-score-board');
+  // io.to(room).emit('edit-score-board', rooms[room].total_scores);
+  // io.to(room).emit('display-scores', rooms[room].scores );
+  time[room] = game_time;
   next = getKeyByValue(rooms[room].played, false);
   current_player[room] = next;
   rooms[room].played[next] = true;
