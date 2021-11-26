@@ -4,6 +4,19 @@ const app = express();
 var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
+// database part
+const {Client} = require('pg')
+
+const client = new Client({
+    host: "localhost",
+    user: "utkarsh",
+    port: 5432,
+    password: "Utkarsh@2002",
+    database: "skribbl_scores"
+})
+
+client.connect();
+
 const server = require('http').Server(app);
 const io = require('socket.io')(server, {
     cors: {
@@ -34,6 +47,17 @@ var timeInterval = {};
 
 var time = {};
 
+var guess_count = {};
+
+client.query('Select * from scores', (err, res) =>{
+  if(!err){
+      console.log(res.rows[2].users);
+  }else{
+      console.log(err.message);
+  }
+  client.end();
+})
+
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
 });
@@ -42,13 +66,14 @@ app.post('/room', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/');
   }
-  rooms[req.body.room] = { users: {}, id: null, played: {}, vote: 0 };
+  rooms[req.body.room] = { users: {}, id: null, played: {}, vote: 0 , scores: {}};
   current_word[req.body.room] = null;
   round_number[req.body.room] = 1;
   game_on[req.body.room] = false;
   current_player[req.body.room] = null;
   roundInterval[req.body.room] = null;
   timeInterval[req.body.room] = null;
+  guess_count[req.body.room] = null;
   res.redirect(req.body.room);
   time[req.body.room] = 0;
   io.emit('room-created', req.body.room);
@@ -86,6 +111,7 @@ console.log('Listening on port *:5500'));
 io.on('connection', socket => {
   socket.on('new-user', (room,name) => {
     socket.join(room);
+    rooms[room].scores[name] = 0; // On connection scores are made 0
     rooms[room].users[socket.id] = name;
     rooms[room].played[socket.id] = false;
     socket.to(room).emit('user-connected', name);
@@ -135,6 +161,34 @@ io.on('connection', socket => {
     }
   });
 
+  // 90-75 ==> 1200
+  // 75-60 ==> 1000
+  // 60-45 ==> 800
+  // 45-30 ==> 600
+  // 30-15 ==> 400
+  // 15-00 ==> 200
+  socket.on('update-score', (room,name)=> {   
+    // Updating guess count also
+    rooms[room].scores[name] = (time[room]/15+1)*200
+    guess_count[room]++;
+    if(guess_count[room] == Object.keys(rooms[room].users).length -1){
+      // console.log("here")
+      io.to(room).emit('display-scores', rooms[room].scores )
+      guess_count[room] = 0;
+      clearInterval(roundInterval[room]);
+      roundFunc(room); // Start new round
+      clearInterval(timeInterval[room]);
+      time[room] = 90;
+      timeDec(room);
+      timeInterval[room] = setInterval(timeDec, 1000, room);
+      roundInterval[room] = setInterval(roundFunc, 90000, room);
+    }
+  });
+
+  socket.on('initialize-score' ,(room,name) =>{
+    rooms[room].scores[name] = 0
+  })
+
   socket.on('drawing', (room, data) => {
     socket.to(room).emit('drawing-data', data)
   });
@@ -142,6 +196,7 @@ io.on('connection', socket => {
     socket.to(room).emit('drawing-end')
   });
   socket.on('start-game', (room) => {
+    guess_count[room] = 0;
     game_on[room] = true;
     socket.to(room).emit('disable-start-button');
     clearInterval(roundInterval[room]);
@@ -160,6 +215,7 @@ io.on('connection', socket => {
       socket.to(room).emit('user-disconnected', rooms[room].users[socket.id]);
       delete rooms[room].users[socket.id];
       delete rooms[room].played[socket.id];
+      // delete rooms[room].scores[socket.id];
       if(game_on)
       {
           if(current_player[room] == socket.id)
@@ -176,6 +232,7 @@ io.on('connection', socket => {
     })
   });
 })
+
 emitter.on('start-round', (room, next) => {
     var keys = Object.keys(words);
     current_word[room] = words[keys[Math.floor(keys.length * Math.random())]];

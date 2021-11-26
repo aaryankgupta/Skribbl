@@ -105,6 +105,7 @@ if (messageForm != null){
     socket.on('drawing-data', drawingEvent);
     socket.on('drawing-end', () => ctx.beginPath());
     socket.on('round-begin', (word, room) => {
+        socket.emit('initialize-score',room,name);
         canvas.addEventListener("mousedown", startDraw);
         canvas.addEventListener("mouseup", endDraw);
         canvas.addEventListener("mousemove", Draw);
@@ -129,6 +130,12 @@ if (messageForm != null){
       else if(kicked_out) alert(`You have been kicked out !!`)
     });
 
+    socket.on('display-scores' , (scores_dict) =>{
+      alert(scores_dict);
+      socket.emit('initialize-score',roomName,room)
+    })
+
+    // popover
     socket.on('guess-length', (num) => {
         canvas.removeEventListener("mousedown", startDraw);
         canvas.removeEventListener("mouseup", endDraw);
@@ -142,6 +149,8 @@ if (messageForm != null){
     socket.on('correct-guess', () => {
         guessed = true;
         appendMessage('You guessed correctly');
+        // socket.emit('update-guess-count');
+        socket.emit('update-score', roomName, name );
     });
     socket.on('made-guess', (name) => {
         appendMessage(`${name} guessed the word correctly`);
