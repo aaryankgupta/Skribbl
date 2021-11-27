@@ -4,9 +4,6 @@ const app = express();
 var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
-// BUG: when time gets 0 then points are not shown on the screen
-// BUG: Leaderboard not getting updated properly
-
 // database part
 const {Client} = require('pg')
 
@@ -36,7 +33,7 @@ app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
 const game_time = 20
-const num_round = 3
+const num_round = 1
 
 const rooms = {};
 
@@ -82,7 +79,6 @@ app.get('/leaderboard',(req,res) => {
     if(err)
         throw err;
     else {
-        console.log(result.rows)
         res.render('leaderboard.ejs', { scoreboard: result.rows });  
     }
   })
@@ -202,8 +198,8 @@ io.on('connection', socket => {
     guess_count[room]++;
     if(guess_count[room] == Object.keys(rooms[room].users).length -1){
 
-      rooms[room].scores[current_player] = 1200;
-      rooms[room].total_scores[current_player] += rooms[room].scores[current_player];
+      rooms[room].scores[current_player[room]] = 1200;
+      rooms[room].total_scores[current_player[room]] += rooms[room].scores[current_player[room]];
       clearInterval(roundInterval[room]);
       roundFunc(room); // Start new round
       clearInterval(timeInterval[room]);
@@ -282,20 +278,18 @@ function roundFunc(room) {
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
     if( round_number[room] == num_round+1 ){
       
-      console.log("game_end")
+      // console.log("game_end")
 
-      // console.log(name_dict)
       for([key,val] of Object.entries(rooms[room].users)){
-        console.log("player: " + val)
         if(String(val) in name_dict){
-          console.log("repeated entries")
-          var new_score = ((name_dict[val].scores * name_dict[val].num_games) + rooms[room].scores[key])/ (name_dict[val].num_games + 1)
-          var new_num_games = name_dict[val].num_games + 1
+          var new_num_games = parseInt(name_dict[val].num_games) + 1
+          var new_score = Math.floor(((name_dict[val].scores * parseInt(name_dict[val].num_games)) + rooms[room].total_scores[key])/new_num_games)
           client.query("UPDATE public.scores SET users=$1,scores=$2,num_games=$3 WHERE users=$1",[val,new_score,new_num_games])
         }else{
-          client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].scores[key],1])        
+          client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].total_scores[key],parseInt(1)])        
         }
       }
+      io.to(room).emit('display-scores', rooms[room].scores , rooms[room].users);
       io.to(room).emit('redirect','/leaderboard')
       game_on[room] = false;
       clearInterval(roundInterval[room])
@@ -316,10 +310,14 @@ function roundFunc(room) {
   rooms[room].played[next] = true;
   rooms[room].vote = 0;
 
+  // console.log(current_player[room])
+  // console.log(rooms[room].scores)
+  // console.log(rooms[room].users)
+
   const num_palyer = Object.keys(rooms[room].users).length 
   if(Boolean(guess_count[room] != num_palyer-1)){
-    rooms[room].scores[current_player] = Math.floor(guess_count[room]/(num_palyer-1))*1200; // fraction of correct guess * total points
-    rooms[room].total_scores[current_player] += rooms[room].scores[current_player];
+    rooms[room].scores[current_player[room]] = Math.floor(guess_count[room]/(num_palyer-1) * 1200); // fraction of correct guess * total points
+    rooms[room].total_scores[current_player[room]] += rooms[room].scores[current_player[room]];
   }
   guess_count[room] = 0;
 
