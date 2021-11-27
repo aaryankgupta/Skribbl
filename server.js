@@ -4,14 +4,16 @@ const app = express();
 var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
+require('dotenv').config({ path: './.env'});
+
 // database part
 const {Client} = require('pg')
 
 const client = new Client({
     host: "localhost",
-    user: "utkarsh",
+    user: process.env.USERNAME,
     port: 5432,
-    password: "Utkarsh@2002",
+    password: process.env.PASSWORD,
     database: "skribbl_scores"
 })
 
