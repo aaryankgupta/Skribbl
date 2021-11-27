@@ -4,6 +4,9 @@ const app = express();
 var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
+// BUG: when time gets 0 then points are not shown on the screen
+// BUG: Leaderboard not getting updated properly
+
 // database part
 const {Client} = require('pg')
 
@@ -15,7 +18,10 @@ const client = new Client({
     database: "skribbl_scores"
 })
 
-client.connect();
+client.connect()
+.then(() => console.log("Connected succesfully"))
+.catch(e => console.log(e))
+// .finally(() => client.end())
 
 const server = require('http').Server(app);
 const io = require('socket.io')(server, {
@@ -29,7 +35,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-const game_time = 2
+const game_time = 20
 const num_round = 3
 
 const rooms = {};
@@ -52,21 +58,34 @@ var time = {};
 
 var guess_count = {};
 
-client.query('Select * from scores', (err, res) =>{
+const name_dict = {}
+
+client.query('select * from scores', (err, res) =>{
   if(!err){
-      console.log(res.rows[2].users);
+      console.table(res.rows);
+      for(let i=0;i<res.rows.length;i++){
+        name_dict[res.rows[i].users] = {scores: res.rows[i].scores , num_games: res.rows[i].num_games }
+      }
   }else{
       console.log(err.message);
   }
-  client.end();
+  // client.end();
 })
 
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
 });
 
-app.get('/leaderboard',(req,res) =>{
-  res.render('leaderboard');
+app.get('/leaderboard',(req,res) => {
+  var query = "select * from scores";
+  client.query(query,(err,result) =>{
+    if(err)
+        throw err;
+    else {
+        console.log(result.rows)
+        res.render('leaderboard.ejs', { scoreboard: result.rows });  
+    }
+  })
 })
 
 app.post('/room', (req, res) => {
@@ -263,6 +282,20 @@ function roundFunc(room) {
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
     if( round_number[room] == num_round+1 ){
       
+      console.log("game_end")
+
+      // console.log(name_dict)
+      for([key,val] of Object.entries(rooms[room].users)){
+        console.log("player: " + val)
+        if(String(val) in name_dict){
+          console.log("repeated entries")
+          var new_score = ((name_dict[val].scores * name_dict[val].num_games) + rooms[room].scores[key])/ (name_dict[val].num_games + 1)
+          var new_num_games = name_dict[val].num_games + 1
+          client.query("UPDATE public.scores SET users=$1,scores=$2,num_games=$3 WHERE users=$1",[val,new_score,new_num_games])
+        }else{
+          client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].scores[key],1])        
+        }
+      }
       io.to(room).emit('redirect','/leaderboard')
       game_on[room] = false;
       clearInterval(roundInterval[room])
