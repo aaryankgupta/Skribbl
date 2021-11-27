@@ -35,7 +35,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-const game_time = 20
+const game_time = 90
 const num_round = 3
 
 const rooms = {};
@@ -173,7 +173,7 @@ io.on('connection', socket => {
     rooms[room].vote++; // vote for each room would be made 0 after each round
     const num_players = Object.keys(rooms[room].users).length 
     let kicked_out = Boolean(rooms[room].vote == num_players-1)
-    io.to(room).emit('votekick-message', voter_name , rooms[room].users[current_player[room]], rooms[room].vote, num_players, kicked_out)
+    io.to(room).emit('votekick-message', voter_name , rooms[room].users[current_player[room]], rooms[room].vote, num_players, kicked_out, current_player[room])
     if(kicked_out){
       delete rooms[room].users[current_player[room]];
       delete rooms[room].played[current_player[room]];
@@ -202,8 +202,8 @@ io.on('connection', socket => {
     guess_count[room]++;
     if(guess_count[room] == Object.keys(rooms[room].users).length -1){
 
-      rooms[room].scores[current_player] = 1200;
-      rooms[room].total_scores[current_player] += rooms[room].scores[current_player];
+      rooms[room].scores[current_player[room]] = 1200;
+      rooms[room].total_scores[current_player[room]] += rooms[room].scores[current_player[room]];
       clearInterval(roundInterval[room]);
       roundFunc(room); // Start new round
       clearInterval(timeInterval[room]);
@@ -244,7 +244,19 @@ io.on('connection', socket => {
       socket.to(room).emit('user-disconnected', rooms[room].users[socket.id]);
       delete rooms[room].users[socket.id];
       delete rooms[room].played[socket.id];
-      // delete rooms[room].scores[socket.id];
+      delete rooms[room].scores[socket.id];
+      if(Object.keys(rooms[room].users).length === 0)
+      {
+          clearInterval(roundInterval[room]);
+          clearInterval(timeInterval[room]);
+          delete current_word[room];
+          delete round_number[room];
+          delete current_player[room];
+          delete guess_count[room];
+          delete roundInterval[room];
+          delete timeInterval[room];
+          delete rooms[room];
+      }
       if(game_on)
       {
           if(current_player[room] == socket.id)
@@ -320,8 +332,8 @@ function roundFunc(room) {
 
   const num_palyer = Object.keys(rooms[room].users).length 
   if(Boolean(guess_count[room] != num_palyer-1)){
-    rooms[room].scores[current_player] = Math.floor(guess_count[room]/(num_palyer-1))*1200; // fraction of correct guess * total points
-    rooms[room].total_scores[current_player] += rooms[room].scores[current_player];
+    rooms[room].scores[current_player[room]] = Math.floor(guess_count[room]/(num_palyer-1))*1200; // fraction of correct guess * total points
+    rooms[room].total_scores[current_player[room]] += rooms[room].scores[current_player[room]];
   }
   guess_count[room] = 0;
 
