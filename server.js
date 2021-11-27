@@ -123,8 +123,16 @@ app.post('/privateroom', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/private');
   }
-  rooms[req.body.room] = { users: {}, id: req.body.pass, played: {}};
+  rooms[req.body.room] = { users: {}, id: req.body.pass, played: {}, scores: {}, total_scores: {}};
+  current_word[req.body.room] = null;
+  round_number[req.body.room] = 1;
+  game_on[req.body.room] = false;
+  current_player[req.body.room] = null;
+  roundInterval[req.body.room] = null;
+  timeInterval[req.body.room] = null;
+  guess_count[req.body.room] = null;
   res.redirect(req.body.room);
+  time[req.body.room] = 0;
 });
 
 app.post('/joinprivate', (req, res) => {
@@ -180,6 +188,8 @@ io.on('connection', socket => {
   
   // utkarsh's part
   socket.on('send-vote', (room , voter_name) => {
+    if(rooms[room] != null)
+    {
     rooms[room].vote++; // vote for each room would be made 0 after each round
     const num_players = Object.keys(rooms[room].users).length 
     let kicked_out = Boolean(rooms[room].vote == num_players-1)
@@ -187,14 +197,19 @@ io.on('connection', socket => {
     if(kicked_out){
       delete rooms[room].users[current_player[room]];
       delete rooms[room].played[current_player[room]];
+      delete rooms[room].scores[current_player[room]];
+      delete rooms[room].total_scores[current_player[room]];
+      socket.to(current_player[room]).emit('kick-out');
       socket.to(current_player[room]).emit('redirect', '/');
       clearInterval(roundInterval[room]);
       roundFunc(room);
       clearInterval(timeInterval[room]);
       time[room] = game_time;
       timeDec(room);
+      rooms[room].vote = 0;
       timeInterval[room] = setInterval(timeDec, 1000, room);
       roundInterval[room] = setInterval(roundFunc, game_time*1000, room);
+      }
     }
   });
 
@@ -225,6 +240,7 @@ io.on('connection', socket => {
   });
 
   socket.on('initialize-score' ,(room) =>{
+    if(rooms[room] != undefined)
     rooms[room].scores[socket.id] = 0
   })
 
@@ -258,6 +274,7 @@ io.on('connection', socket => {
       delete rooms[room].users[socket.id];
       delete rooms[room].played[socket.id];
       delete rooms[room].scores[socket.id];
+      delete rooms[room].total_scores[socket.id];
       if(Object.keys(rooms[room].users).length === 0)
       {
           clearInterval(roundInterval[room]);
@@ -317,6 +334,8 @@ function roundFunc(room) {
         console.log("player: " + val)
         client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].total_scores[key],1])        
       }
+      io.to(room).emit('display-scores', rooms[room].scores, rooms[room].users, 'Round Scores\n')
+      io.to(room).emit('display-scores', rooms[room].total_scores, rooms[room].users, 'Final Scores\n')
       io.to(room).emit('redirect','/leaderboard')
       game_on[room] = false;
       clearInterval(roundInterval[room])
@@ -339,14 +358,14 @@ function roundFunc(room) {
 
   const num_palyer = Object.keys(rooms[room].users).length 
   if(Boolean(guess_count[room] != num_palyer-1)){
-    rooms[room].scores[current_player[room]] = Math.floor(guess_count[room]/(num_palyer-1))*1200; // fraction of correct guess * total points
+    rooms[room].scores[current_player[room]] = Math.floor((guess_count[room]/(num_palyer-1))*1200); // fraction of correct guess * total points
     rooms[room].total_scores[current_player[room]] += rooms[room].scores[current_player[room]];
   }
   guess_count[room] = 0;
 
   io.to(room).emit('clear-score-board');
   io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
-  io.to(room).emit('display-scores', rooms[room].scores , rooms[room].users);
+  io.to(room).emit('display-scores', rooms[room].scores , rooms[room].users, 'Round Scores\n');
   emitter.emit('start-round', room, next);
   }
 }

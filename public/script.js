@@ -153,19 +153,19 @@ if (messageForm != null){
     }
 
     socket.on('votekick-message', (voter_name, curr_player_name, vote, num_palyer, kicked_out, kick_socket) =>{ 
-      if(socket.id != kick_socket){
+      if(socket.sessionid != kick_socket){
         if(kicked_out) appendMessage(`${curr_player_name} has been kicked out!!`, "#FF0000")
         else appendMessage(`'${voter_name}' is voting to kick '${curr_player_name}'  (${vote}/${num_palyer-1})`, "#FFFF00")
       }
       else if(kicked_out) alert(`You have been kicked out !!`)
     });
 
-    socket.on('display-scores' , (scores_dict, name_dict) =>{
+    socket.on('display-scores' , (scores_dict, name_dict, start) =>{
       new_dict = {};
-      var str = '';
+      var str = start;
       for([key,val] of Object.entries(scores_dict)){
         if(name_dict[key] != undefined)
-        str = str + `${name_dict[key]} :\t${scores_dict[key]}\n`
+        str = str + `${name_dict[key]} :    ${scores_dict[key]}\n`
       }
       console.log(str)
       alert(str);
@@ -249,6 +249,10 @@ socket.on('edit-score-board', (scores_dict , name_dict) => {
 
 socket.on('user-disconnected', name => {
     appendMessage(`${name} disconnected`, "#FFFF00")
+});
+
+socket.on('kick-out', () => {
+    alert("You have been kicked out")
 });
 
 socket.on('room-created', room => {
