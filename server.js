@@ -1,6 +1,8 @@
 
 const express = require('express');
 const app = express();
+const dotenv = require('dotenv');
+dotenv.config();
 var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
@@ -11,11 +13,11 @@ var emitter = new EventEmitter();
 const {Client} = require('pg')
 
 const client = new Client({
-    host: "localhost",
-    user: "sankalp",
-    port: 5432,
-    password: "v2a4s10h0u2",
-    database: "skribbl_scores"
+    host: process.env.HOST,
+    user: process.env.USER,
+    port: process.env.PORT,
+    password: process.env.PASSWORD,
+    database: process.env.DATABASE
 })
 
 client.connect()
@@ -83,7 +85,17 @@ app.get('/leaderboard',(req,res) => {
         throw err;
     else {
         console.log(result.rows)
-        res.render('leaderboard.ejs', { scoreboard: result.rows });  
+        const scoreboard = result.rows;
+        var sortable = [];
+        for (var score in scoreboard)
+        {
+            sortable.push([score, scoreboard[score].scores])
+        }
+        sortable.sort(function(a, b) {
+            return b[1] - a[1];
+        });
+
+        res.render('leaderboard.ejs', { scoreboard: result.rows , sortable: sortable });  
     }
   })
 })
@@ -301,14 +313,7 @@ function roundFunc(room) {
       // console.log(name_dict)
       for([key,val] of Object.entries(rooms[room].users)){
         console.log("player: " + val)
-        if(String(val) in name_dict){
-          console.log("repeated entries")
-          var new_score = ((name_dict[val].scores * name_dict[val].num_games) + rooms[room].total_scores[key])/ (name_dict[val].num_games + 1)
-          var new_num_games = name_dict[val].num_games + 1
-          client.query("UPDATE public.scores SET users=$1,scores=$2,num_games=$3 WHERE users=$1",[val,new_score,new_num_games])
-        }else{
-          client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].total_scores[key],1])        
-        }
+        client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].total_scores[key],1])        
       }
       io.to(room).emit('redirect','/leaderboard')
       game_on[room] = false;

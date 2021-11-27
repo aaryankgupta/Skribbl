@@ -25,15 +25,18 @@
 
 <body id="body">
         <h1>Leaderboard</h1>
-        <script> const scoreboard = "<%= scoreboard %>" </script>
+        <script> 
+        const scoreboard = "<%= scoreboard %>"
+        const sortable = "<%= sortable %>"
+        </script>
         
         <ul class="list-group">
           <script>console.log(scoreboard.length)</script>
-          <% for(var i=0; i<scoreboard.length;i++) {%>
+          <% for(var i=0; i<sortable.length;i++) {%>
             <li class="list-group-item">
-              <span>Name: </span><%= scoreboard[i].users %>
+              <span>Name: </span><%= scoreboard[sortable[i][0]].users %>
                 <br/>
-              <span>Score: </span><%= scoreboard[i].scores %>
+              <span>Score: </span><%= scoreboard[sortable[i][0]].scores %>
             </li>
           <% } %>
         </ul>
