@@ -131,18 +131,6 @@ if (messageForm != null){
       else if(kicked_out) alert(`You have been kicked out !!`)
     });
 
-    socket.on('display-scores' , (scores_dict, name_dict) =>{
-      new_dict = {};
-      var str = '';
-      for([key,val] of Object.entries(scores_dict)){
-        if(name_dict[key] != undefined)
-        str = str + `${name_dict[key]} :\t${scores_dict[key]}\n`
-      }
-      console.log(str)
-      alert(str);
-      socket.emit('initialize-score',roomName)
-    })
-
     // popover
     socket.on('guess-length', (num) => {
         canvas.removeEventListener("mousedown", startDraw);
@@ -167,6 +155,16 @@ if (messageForm != null){
         time_container.innerHTML = `Time Left: ${time}`;
     });
 }
+
+socket.on('display-scores' , (scores_dict, name_dict) =>{
+  new_dict = {};
+  for([key,val] of Object.entries(scores_dict)){
+    new_dict[name_dict[key]] = val;
+  }
+  str = JSON.stringify(new_dict, null, 4)
+  alert(str);
+  socket.emit('initialize-score',roomName)
+});
 
 socket.on('chat-message',(data, guess_this) => {
     if(!guess_this)

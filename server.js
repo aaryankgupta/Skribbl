@@ -6,8 +6,7 @@ dotenv.config();
 var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
-// BUG: when time gets 0 then points are not shown on the screen
-// BUG: Leaderboard not getting updated properly
+require('dotenv').config({ path: './.env'});
 
 // database part
 const {Client} = require('pg')
@@ -308,13 +307,13 @@ function roundFunc(room) {
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
     if( round_number[room] == num_round+1 ){
       
-      console.log("game_end")
+      // console.log("game_end")
 
-      // console.log(name_dict)
       for([key,val] of Object.entries(rooms[room].users)){
         console.log("player: " + val)
         client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].total_scores[key],1])        
       }
+      io.to(room).emit('display-scores', rooms[room].scores , rooms[room].users);
       io.to(room).emit('redirect','/leaderboard')
       game_on[room] = false;
       clearInterval(roundInterval[room])
@@ -334,6 +333,10 @@ function roundFunc(room) {
   current_player[room] = next;
   rooms[room].played[next] = true;
   rooms[room].vote = 0;
+
+  // console.log(current_player[room])
+  // console.log(rooms[room].scores)
+  // console.log(rooms[room].users)
 
   const num_palyer = Object.keys(rooms[room].users).length 
   if(Boolean(guess_count[room] != num_palyer-1)){
