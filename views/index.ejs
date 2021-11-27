@@ -13,28 +13,59 @@
         position:relative;
         top: 20px;
     }
+    div.container {
+        position: absolute;
+        top:0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        
+        margin: auto;
+        background-color: lightgrey;
+        width: 600px;
+        height: 400px;
+        border: 15px solid rgb(32, 134, 202);
+        box-shadow: 10px 10px rgb(22, 38, 88);
+        padding: 50px;
+    }
+    div.center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 </style>
 </head>
 <body>
-    <div id="room-container">
+    <div id="room-container" class="container">
         <form action="/room" method="POST">
-        Room Name : <input name="room" type="text" required>
-        <button type="submit" class="btn btn-success">New Public Room</button>
-    </form>
-    <br>
-    <a href="/private" class="btn btn-success">Create/Join Private Room</a>
-    <br>
-    <h2>Active Public Rooms</h2>
-    <% Object.keys(rooms).forEach(room => { %>
-        <% if(!rooms[room].id){ %>
-            <div>
-            <%= room %>
-            <a href="/<%= room %>" class="btn btn-success">Join Room</a>
+            <div class="center">
+                Room Name : <input name="room" type="text" required>
+                <button  class="btn btn-info" type="button" value="submit">New Public Room</button>
             </div>
-        <% } %>
-    <% }) %>
+        </form>
+        <br>
+        <div class="center">
+            <a href="/private" class="btn btn-info" role="button">Create/Join Private Room</a>
+        </div>
+        <br>
+        <div class="center">
+            <h2>Active Public Rooms</h2>
+        </div>
+        <% Object.keys(rooms).forEach(room => { %>
+            <% if(!rooms[room].id){ %>
+                <div class="center">
+                <%= room %>
+                <br>
+                    <a href="/<%= room %>" class="btn btn-info" role="button">Join Room</a>
+                </div>
+            <% } %>
+        <% }) %>
 
+    
+        <div class="center">
+            <a href="/leaderboard" class="btn btn-info" id="leaderboard-button" role="button">Global Leaderboard</a>
+        </div>
+    
     </div>
-    <a href="/leaderboard" class="btn btn-success" id="leaderboard-button">Global Leaderboard</a>
 </body>
 </html>

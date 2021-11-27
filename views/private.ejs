@@ -9,27 +9,62 @@
     body {
         background-image: url("/images/background.png");
     }
+    div.container {
+        position: absolute;
+        top:0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        
+        margin: auto;
+        background-color: lightgrey;
+        width: 650px;
+        height: 600px;
+        border: 15px solid rgb(32, 134, 202);
+        box-shadow: 10px 10px rgb(22, 38, 88);
+        padding: 50px;
+    }
+    div.center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-bottom: 2mm;
+    }
+    div.center_head{
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 1mm;
+        margin-bottom: 3mm;
+    }
 </style>
 </head>
 <body>
-    <h2>Create Private Room</h2>
-    <div id="private-room-container">
-        <form action="/privateroom" method="POST">
-        Room Name : <input name="room" type="text" required>
+    <div class=container>
+        <div class="center_head"><h2>Create Private Room</h2></div>
+        <div id="private-room-container">
+            <form action="/privateroom" method="POST">
+                <div class="center">
+                    Room Name : <input name="room" type="text" required>
+                </div>
+                <div class="center">
+                    Room Pass : <input name="pass" type="password" required>
+                </div>
+                <div class="center"><button type="submit" class="btn btn-info">New Private Room</button></div>    
+            </form>
+        </div>
         <br>
-        Room Pass : <input name="pass" type="password" required>
-        <br>
-        <button type="submit" class="btn btn-success">New Private Room</button>
-    </form>
-    </div>
-    <h2>Join Private Room</h2>
-    <div id="private-room-join-container">
-        <form action="/joinprivate" method="POST">
-        Room Name : <input name="room" type="text" required>
-        <button type="submit" class="btn btn-success">Join Private Room</button>
-    </form>
-    </div>
+        <div class="center_head"><h2>Join Private Room</h2></div>
+        <div id="private-room-join-container">
+            <form action="/joinprivate" method="POST">
+                <div class="center">
+                    Room Name : <input name="room" type="text" required>
+                    <button type="submit" class="btn btn-info">Join Private Room</button>
+                </div>
+            </form>
+        </div>
     <br>
-    <a href="/" class="btn btn-success">Create/Join Public Room</a>
+    <div class="center"><a href="/" class="btn btn-info">Create/Join Public Room</a></div>
+    </div>
 </body>
 </html>

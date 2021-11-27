@@ -10,6 +10,7 @@ const time_container = document.getElementById('time-container')
 const votekick_button = document.getElementById('votekick-button')
 const start_button = document.getElementById('start-button')
 const score_container = document.getElementById('score-container')
+const word_modal = document.getElementById('modal-body-word')
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
@@ -111,7 +112,11 @@ if (messageForm != null){
         canvas.addEventListener("mouseup", endDraw);
         canvas.addEventListener("mousemove", Draw);
         votekick_button.disabled = true;
-        alert(`You are drawing now. Your word is: ${word}`);
+        word_modal.innerHTML = `You are drawing now. Your word is: ${word}`
+        console.log(word_modal.innerHTML)
+        $(document).ready(function () {
+          $("#word-modal").modal();
+        })
         word_container.innerHTML = word;
         socket.emit('word-length', room, word.length);
         guessed = true;
