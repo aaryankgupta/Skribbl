@@ -228,10 +228,6 @@ io.on('connection', socket => {
     rooms[room].scores[socket.id] = 0
   })
 
-  socket.on('peer-id', (room, id) =>{
-    socket.to(room).emit('peer-connected', id)
-  });
-
   socket.on('drawing', (room, data) => {
     socket.to(room).emit('drawing-data', data)
   });
@@ -253,8 +249,11 @@ io.on('connection', socket => {
   socket.on('word-length', (room, num) => {
     socket.to(room).emit('guess-length', num);
   });
+  socket.on('peer-id', (room, id) =>{
+  socket.to(room).emit('peer-connected', id);
   socket.on('disconnect', () => {
     getUserRooms(socket).forEach(room => {
+      socket.to(room).emit('peer-disconnect', id);
       socket.to(room).emit('user-disconnected', rooms[room].users[socket.id]);
       delete rooms[room].users[socket.id];
       delete rooms[room].played[socket.id];
@@ -286,6 +285,7 @@ io.on('connection', socket => {
       }
     })
   });
+  })
 })
 
 emitter.on('start-round', (room, next) => {

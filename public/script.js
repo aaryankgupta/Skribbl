@@ -15,6 +15,7 @@ const videoGrid = document.getElementById('video-grid')
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var guessed = false;
+const peers = {}
 
 if (messageForm != null){
     if (roomPass != ''){
@@ -194,6 +195,9 @@ if (messageForm != null){
     socket.on('time', (time) => {
         time_container.innerHTML = `Time Left: ${time}`;
     });
+    socket.on('peer-disconnect', userId => {
+      if(peers[userId])peers[userId].close();
+    });
     function connectToNewUser(userId, stream)
     {
         const call = myPeer.call(userId, stream)
@@ -204,6 +208,8 @@ if (messageForm != null){
         call.on('close', () => {
           video.remove()
         })
+
+        peers[userId] = call
     }
 
 
