@@ -134,7 +134,8 @@ if (messageForm != null){
     socket.on('display-scores' , (scores_dict, name_dict) =>{
       new_dict = {};
       for([key,val] of Object.entries(scores_dict)){
-        new_dic[name_dict[key]] = val;
+        if(name_dict[key] != undefined)
+        new_dict[name_dict[key]] = val;
       }
       str = JSON.stringify(new_dict, null, 4)
       console.log(str)
@@ -189,9 +190,12 @@ socket.on('clear-score-board', () => {
 
 socket.on('edit-score-board', (scores_dict , name_dict) => {
   for([key,val] of Object.entries(scores_dict)){
+    if(name_dict[key] != undefined)
+    {
     var scoreElement = document.createElement('div')
     scoreElement.innerText = `${name_dict[key]} : ${val}`
     score_container.append(scoreElement)
+    }
   }
 
 });

@@ -12,9 +12,9 @@ const {Client} = require('pg')
 
 const client = new Client({
     host: "localhost",
-    user: "utkarsh",
+    user: "sankalp",
     port: 5432,
-    password: "Utkarsh@2002",
+    password: "v2a4s10h0u2",
     database: "skribbl_scores"
 })
 
@@ -276,6 +276,8 @@ function getUserRooms(socket) {
 }
 
 function roundFunc(room) {
+  if(rooms[room] != undefined)
+  {
   if (getKeyByValue(rooms[room].played, false) === undefined)
   {
     round_number[room] = round_number[room] + 1;
@@ -289,11 +291,11 @@ function roundFunc(room) {
         console.log("player: " + val)
         if(String(val) in name_dict){
           console.log("repeated entries")
-          var new_score = ((name_dict[val].scores * name_dict[val].num_games) + rooms[room].scores[key])/ (name_dict[val].num_games + 1)
+          var new_score = ((name_dict[val].scores * name_dict[val].num_games) + rooms[room].total_scores[key])/ (name_dict[val].num_games + 1)
           var new_num_games = name_dict[val].num_games + 1
           client.query("UPDATE public.scores SET users=$1,scores=$2,num_games=$3 WHERE users=$1",[val,new_score,new_num_games])
         }else{
-          client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].scores[key],1])        
+          client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].total_scores[key],1])        
         }
       }
       io.to(room).emit('redirect','/leaderboard')
@@ -327,6 +329,7 @@ function roundFunc(room) {
   io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
   io.to(room).emit('display-scores', rooms[room].scores , rooms[room].users);
   emitter.emit('start-round', room, next);
+  }
 }
 
 function getKeyByValue(object, value) {
@@ -334,6 +337,9 @@ function getKeyByValue(object, value) {
 }
 
 function timeDec(room) {
+  if(time[room] != undefined)
+  {
   time[room] = time[room] - 1;
   io.to(room).emit('time', time[room]);
+  }
 }
