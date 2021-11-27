@@ -6,8 +6,6 @@ dotenv.config();
 var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
-// BUG: when time gets 0 then points are not shown on the screen
-// BUG: Leaderboard not getting updated properly
 
 // database part
 const {Client} = require('pg')
@@ -229,6 +227,10 @@ io.on('connection', socket => {
   socket.on('initialize-score' ,(room) =>{
     rooms[room].scores[socket.id] = 0
   })
+
+  socket.on('peer-id', (room, id) =>{
+    socket.to(room).emit('peer-connected', id)
+  });
 
   socket.on('drawing', (room, data) => {
     socket.to(room).emit('drawing-data', data)

@@ -10,6 +10,7 @@ const time_container = document.getElementById('time-container')
 const votekick_button = document.getElementById('votekick-button')
 const start_button = document.getElementById('start-button')
 const score_container = document.getElementById('score-container')
+const videoGrid = document.getElementById('video-grid')
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
@@ -23,6 +24,33 @@ if (messageForm != null){
         }
     }
     const name = prompt('What is your name?');
+    const myPeer = new Peer(undefined, {
+      host: '/',
+      port: '3001'
+    });
+    const myVideo = document.createElement('video')
+    myVideo.muted = true
+
+    navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    }).then(stream => {
+        addVideoStream(myVideo, stream)
+        myPeer.on('call', call => {
+        call.answer(stream)
+        const video = document.createElement('video')
+        call.on('stream', userVideoStream => {
+          addVideoStream(video, userVideoStream)
+        })
+    })
+    socket.on('peer-connected', userId => {
+          connectToNewUser(userId, stream)
+        })
+    })
+    myPeer.on('open', id => {
+        socket.emit('peer-id', roomName, id);
+    });
+
     appendMessage('You joined', "#90EE90");
     socket.emit('new-user', roomName, name);
     messageForm.addEventListener('submit', e => {
@@ -166,6 +194,19 @@ if (messageForm != null){
     socket.on('time', (time) => {
         time_container.innerHTML = `Time Left: ${time}`;
     });
+    function connectToNewUser(userId, stream)
+    {
+        const call = myPeer.call(userId, stream)
+        const video = document.createElement('video')
+        call.on('stream', userVideoStream => {
+            addVideoStream(video, userVideoStream)
+        })
+        call.on('close', () => {
+          video.remove()
+        })
+    }
+
+
 }
 
 socket.on('chat-message',(data, guess_this) => {
@@ -223,5 +264,14 @@ function appendMessage(message, color) {
     messageElement.innerText = message
     messageElement.style.color = color
     messageContainer.append(messageElement)
+}
+
+function addVideoStream(video, stream)
+{
+    video.srcObject = stream
+    video.addEventListener('loadedmetadata', () => {
+    video.play()
+    })
+    videoGrid.append(video)
 }
 
