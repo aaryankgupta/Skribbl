@@ -55,7 +55,7 @@
       /* max-width: 1000px; */
       width: 200px;
       top: 50px;
-      margin-left: 250px;
+      margin-left: 255px;
     }
 
     #score-container div{
@@ -83,7 +83,7 @@
         background-color: thistle;
         font-size: x-large;
         top: 15px;
-        left: 455px;
+        left: 460px;
     }
 
     #message-input {
@@ -92,7 +92,7 @@
 
     #start-button-container {
         position: absolute;
-        left: 1350px;
+        left: 1375px;
         /* right: 300px; */
     }
 
@@ -126,11 +126,10 @@
     }
 
     #video-grid {
-        display: inline-flex;
-        grid-auto-flow: row;
+        grid-auto-flow: row dense;
         position: absolute;
-        top: 720px;
-        left: 100px;
+        top: 50px;
+        left: auto;
         height: 250px;
         width: 250px;
     }
@@ -152,7 +151,7 @@
     }
 
     div.color {
-      margin-top: 800px;
+      margin-bottom: -800px;
       /* right: 200px; */
       /* position: absolute; */
       margin-left: 5px;
@@ -202,7 +201,7 @@
         background: white;
         position: absolute;
         top:0;
-        bottom: 150px;
+        bottom: 140px;
         left: 0;
         right: 0;
         
@@ -215,7 +214,7 @@
   </style>
 </head>
 <body>
-  <canvas id="canvas" class="canvas-container">Your Browser doesn't support Canvas</canvas>
+  <canvas id="canvas" class="canvas-container"></canvas>
   <div id="colors">
     <div class="color black" onclick="change('black')"></div>
     <div class="color blue" onclick="change('blue')"></div>
