@@ -83,7 +83,6 @@ app.get('/leaderboard',(req,res) => {
     if(err)
         throw err;
     else {
-        console.log(result.rows)
         const scoreboard = result.rows;
         var sortable = [];
         for (var score in scoreboard)
@@ -124,7 +123,7 @@ app.post('/privateroom', (req, res) => {
   if (rooms[req.body.room] != null) {
     return res.redirect('/private');
   }
-  rooms[req.body.room] = { users: {}, id: req.body.pass, played: {}, scores: {}, total_scores: {}};
+  rooms[req.body.room] = { users: {}, id: req.body.pass, played: {}, vote: 0, scores: {}, total_scores: {}};
   current_word[req.body.room] = null;
   round_number[req.body.room] = 1;
   game_on[req.body.room] = false;
@@ -328,10 +327,8 @@ function roundFunc(room) {
     Object.keys(rooms[room].played).forEach(v => rooms[room].played[v] = false)
     if( round_number[room] == num_round+1 ){
       
-      // console.log("game_end")
 
       for([key,val] of Object.entries(rooms[room].users)){
-        console.log("player: " + val)
         client.query("INSERT INTO public.scores(users, scores, num_games) VALUES ($1,$2,$3)", [val,rooms[room].total_scores[key],1])        
       }
       io.to(room).emit('display-scores', rooms[room].scores, rooms[room].users, 'Round Scores\n')
@@ -352,13 +349,9 @@ function roundFunc(room) {
   }
   time[room] = game_time;
   next = getKeyByValue(rooms[room].played, false);
-  current_player[room] = next;
   rooms[room].played[next] = true;
   rooms[room].vote = 0;
 
-  // console.log(current_player[room])
-  // console.log(rooms[room].scores)
-  // console.log(rooms[room].users)
 
   const num_palyer = Object.keys(rooms[room].users).length 
   if(Boolean(guess_count[room] != num_palyer-1)){
@@ -366,7 +359,7 @@ function roundFunc(room) {
     rooms[room].total_scores[current_player[room]] += rooms[room].scores[current_player[room]];
   }
   guess_count[room] = 0;
-
+  current_player[room] = next;
   io.to(room).emit('clear-score-board');
   io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
   io.to(room).emit('display-scores', rooms[room].scores , rooms[room].users, 'Round Scores\n');
