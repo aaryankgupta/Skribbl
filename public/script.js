@@ -3,18 +3,19 @@ const messageContainer = document.getElementById('message-container')
 const messageForm = document.getElementById('send-container')
 const startForm = document.getElementById('start-button-container')
 const messageInput = document.getElementById('message-input')
-const room_container = document.getElementById('room-container')
-const word_container = document.getElementById('word-container')
-const votekick_container = document.getElementById('votekick-container')
-const time_container = document.getElementById('time-container')
-const votekick_button = document.getElementById('votekick-button')
-const start_button = document.getElementById('start-button')
-const score_container = document.getElementById('score-container')
-const word_modal = document.getElementById('modal-body-word')
+const roomContainer = document.getElementById('room-container')
+const wordContainer = document.getElementById('word-container')
+const timeContainer = document.getElementById('time-container')
+const votekickButton = document.getElementById('votekick-button')
+const startButton = document.getElementById('start-button')
+const scoreContainer = document.getElementById('score-container')
+const wordModal = document.getElementById('modal-body-word')
 const videoGrid = document.getElementById('video-grid')
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
+var cx = canvas.offsetLeft;
+var cy = canvas.offsetTop;
 var guessed = false;
 const peers = {}
 
@@ -66,12 +67,12 @@ if (messageForm != null){
     startForm.addEventListener('submit', e => {
         e.preventDefault()
         // console.log("game_start")
-        start_button.disabled = true;
+        startButton.disabled = true;
         socket.emit('start-game', roomName)
     });
 
     socket.on('disable-start-button',() => {
-      start_button.disabled = true;
+      startButton.disabled = true;
     });
 
     canvas.height = window.innerHeight*0.7;
@@ -93,24 +94,25 @@ if (messageForm != null){
         ctx.beginPath();
         socket.emit('drawing-end', roomName);
       }
-      function Draw()
+      function Draw(event)
       {
         if(!paint)
         return;
         ctx.lineCap = 'round';
-        x1 = event.clientX;
-        y1 = event.clientY;
+        x1 = event.clientX - cx;
+        y1 = event.clientY - cy;
+        console.log(x1,y1);
         ctx.lineTo(x1, y1);
         ctx.stroke();
         ctx.beginPath();
-        x2 = event.clientX;
-        y2 = event.clientY;
+        x2 = event.clientX - cx;
+        y2 = event.clientY - cy;
         ctx.moveTo(x2, y2);
         socket.emit('drawing', roomName, {
-          x1 : x1 / canvas.width,
-          y1 : y1 / canvas.height,
-          x2 : x2 / canvas.width,
-          y2 : y2 / canvas.height,
+          x1 : x1 ,
+          y1 : y1 ,
+          x2 : x2 ,
+          y2 : y2 ,
           style : ctx.strokeStyle,
           width : ctx.lineWidth
         });
@@ -128,10 +130,10 @@ if (messageForm != null){
         ctx.lineCap = 'round';
         ctx.strokeStyle = data.style;
         ctx.lineWidth = data.width;
-        ctx.lineTo(data.x1*canvas.width, data.y1*canvas.height);
+        ctx.lineTo(data.x1, data.y1);
         ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(data.x2*canvas.width, data.y2*canvas.height);
+        ctx.moveTo(data.x2, data.y2);
       }
     socket.on('drawing-data', drawingEvent);
     socket.on('drawing-end', () => ctx.beginPath());
@@ -140,20 +142,20 @@ if (messageForm != null){
         canvas.addEventListener("mousedown", startDraw);
         canvas.addEventListener("mouseup", endDraw);
         canvas.addEventListener("mousemove", Draw);
-        votekick_button.disabled = true;
-        word_modal.innerHTML = `You are drawing now. Your word is: ${word}`
-        console.log(word_modal.innerHTML)
+        votekickButton.disabled = true;
+        wordModal.innerHTML = `You are drawing now. Your word is: ${word}`
+        console.log(wordModal.innerHTML)
         $(document).ready(function () {
           $("#word-modal").modal();
         })
-        word_container.innerHTML = word;
+        wordContainer.innerHTML = word;
         socket.emit('word-length', room, word.length);
         guessed = true;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
 
     function vote(){
-      votekick_button.disabled = true;
+      votekickButton.disabled = true;
       socket.emit('send-vote', roomName, name )
     }
 
@@ -170,9 +172,9 @@ if (messageForm != null){
         canvas.removeEventListener("mousedown", startDraw);
         canvas.removeEventListener("mouseup", endDraw);
         canvas.removeEventListener("mousemove", Draw);
-        votekick_button.disabled = false;
-        var guess = '*'.repeat(num);
-        word_container.innerHTML = guess;
+        votekickButton.disabled = false;
+        var guess = '_'.repeat(num);
+        wordContainer.innerHTML = guess;
         guessed = false;
         ctx.clearRect(0, 0, canvas.width, canvas.height);
     });
@@ -186,7 +188,7 @@ if (messageForm != null){
         appendMessage(`${name} guessed the word correctly`, "#90EE90");
     });
     socket.on('time', (time) => {
-        time_container.innerHTML = `Time Left: ${time}`;
+        timeContainer.innerHTML = `Time Left: ${time}`;
     });
     socket.on('peer-disconnect', userId => {
       if(peers[userId])peers[userId].close();
@@ -235,7 +237,7 @@ socket.on('user-connected', name => {
 });
 
 socket.on('clear-score-board', () => {
-  score_container.innerText = "";
+  scoreContainer.innerText = "";
 })
 
 socket.on('edit-score-board', (scores_dict , name_dict) => {
@@ -243,8 +245,8 @@ socket.on('edit-score-board', (scores_dict , name_dict) => {
     if(name_dict[key] != undefined)
     {
     var scoreElement = document.createElement('div')
-    scoreElement.innerText = `${name_dict[key]} : ${val}`
-    score_container.append(scoreElement)
+    scoreElement.innerText = `${name_dict[key]} \n Points: ${val}`
+    scoreContainer.append(scoreElement)
     }
   }
 
@@ -264,8 +266,8 @@ socket.on('room-created', room => {
     const roomLink = document.createElement('a');
     roomLink.href = `/${room}`;
     roomLink.innerText = 'join';
-    room_container.append(roomElement);
-    room_container.append(roomLink);
+    roomContainer.append(roomElement);
+    roomContainer.append(roomLink);
 });
 
 socket.on('redirect', function(destination) {
