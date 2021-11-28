@@ -22,7 +22,6 @@ const client = new Client({
 client.connect()
 .then(() => console.log("Connected succesfully"))
 .catch(e => console.log(e))
-// .finally(() => client.end())
 
 const server = require('http').Server(app);
 const io = require('socket.io')(server, {
@@ -36,7 +35,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-const game_time = 20
+const game_time = 90
 const num_round = 3
 
 const rooms = {};
@@ -58,20 +57,6 @@ var timeInterval = {};
 var time = {};
 
 var guess_count = {};
-
-const name_dict = {}
-
-client.query('select * from scores', (err, res) =>{
-  if(!err){
-      console.table(res.rows);
-      for(let i=0;i<res.rows.length;i++){
-        name_dict[res.rows[i].users] = {scores: res.rows[i].scores , num_games: res.rows[i].num_games }
-      }
-  }else{
-      console.log(err.message);
-  }
-  // client.end();
-})
 
 app.get('/', (req, res) => {
   res.render('index', { rooms: rooms });
@@ -186,7 +171,6 @@ io.on('connection', socket => {
     }
   });
   
-  // utkarsh's part
   socket.on('send-vote', (room , voter_name) => {
     if(rooms[room] != null)
     {

@@ -66,7 +66,6 @@ if (messageForm != null){
 
     startForm.addEventListener('submit', e => {
         e.preventDefault()
-        // console.log("game_start")
         startButton.disabled = true;
         socket.emit('start-game', roomName)
     });
@@ -101,7 +100,6 @@ if (messageForm != null){
         ctx.lineCap = 'round';
         x1 = event.clientX - cx;
         y1 = event.clientY - cy;
-        console.log(x1,y1);
         ctx.lineTo(x1, y1);
         ctx.stroke();
         ctx.beginPath();
@@ -144,7 +142,6 @@ if (messageForm != null){
         canvas.addEventListener("mousemove", Draw);
         votekickButton.disabled = true;
         wordModal.innerHTML = `You are drawing now. Your word is: ${word}`
-        console.log(wordModal.innerHTML)
         $(document).ready(function () {
           $("#word-modal").modal();
         })
