@@ -54,12 +54,13 @@ if (messageForm != null){
         socket.emit('peer-id', roomName, id);
     });
 
-    appendMessage('You joined', "#90EE90");
+    appendMessage('<span>You joined</span>', "#90EE90");
     socket.emit('new-user', roomName, name);
     messageForm.addEventListener('submit', e => {
         e.preventDefault()
         const message = messageInput.value
-        appendMessage(`You: ${  message}`, "#000000")
+        if(!guessed) appendMessage(`<span>You:</span> ${  message}`, "#000000")
+        else appendMessage(`<span>You:</span> ${  message}`, "#00FFFF")
         socket.emit('send-chat-message', roomName, message, guessed)
         messageInput.value = ''
     });
@@ -107,10 +108,10 @@ if (messageForm != null){
         y2 = event.clientY - cy;
         ctx.moveTo(x2, y2);
         socket.emit('drawing', roomName, {
-          x1 : x1 ,
-          y1 : y1 ,
-          x2 : x2 ,
-          y2 : y2 ,
+          x1 : x1 / canvas.width,
+          y1 : y1 / canvas.height,
+          x2 : x2 / canvas.width,
+          y2 : y2 / canvas.height,
           style : ctx.strokeStyle,
           width : ctx.lineWidth
         });
@@ -128,10 +129,10 @@ if (messageForm != null){
         ctx.lineCap = 'round';
         ctx.strokeStyle = data.style;
         ctx.lineWidth = data.width;
-        ctx.lineTo(data.x1, data.y1);
+        ctx.lineTo(data.x1*canvas.width, data.y1*canvas.height);
         ctx.stroke();
         ctx.beginPath();
-        ctx.moveTo(data.x2, data.y2);
+        ctx.moveTo(data.x2*canvas.width, data.y2*canvas.height);
       }
     socket.on('drawing-data', drawingEvent);
     socket.on('drawing-end', () => ctx.beginPath());
@@ -158,8 +159,8 @@ if (messageForm != null){
 
     socket.on('votekick-message', (voter_name, curr_player_name, vote, num_palyer, kicked_out, kick_socket) =>{ 
       if(socket.sessionid != kick_socket){
-        if(kicked_out) appendMessage(`${curr_player_name} has been kicked out!!`, "#FF0000")
-        else appendMessage(`'${voter_name}' is voting to kick '${curr_player_name}'  (${vote}/${num_palyer-1})`, "#FFFF00")
+        if(kicked_out) appendMessage(`${curr_player_name} was kicked !`, "#FF0000")
+        else appendMessage(`<span>'${voter_name}' is voting to kick '${curr_player_name}'  (${vote}/${num_palyer-1})</span>`, "#FFFF00")
       }
       else if(kicked_out) alert(`You have been kicked out !!`)
     });
@@ -177,12 +178,12 @@ if (messageForm != null){
     });
     socket.on('correct-guess', () => {
         guessed = true;
-        appendMessage('You guessed correctly', "#90EE90");
+        appendMessage('<span>You guessed correctly</span>', "#90EE90");
         // socket.emit('update-guess-count');
         socket.emit('update-score', roomName);
     });
     socket.on('made-guess', (name) => {
-        appendMessage(`${name} guessed the word correctly`, "#90EE90");
+        appendMessage(`<span>${name} guessed the word correctly!!</span>`, "#90EE90");
     });
     socket.on('time', (time) => {
         timeContainer.innerHTML = `Time Left: ${time}`;
@@ -219,18 +220,18 @@ socket.on('display-scores' , (scores_dict, name_dict, start) =>{
 
 socket.on('chat-message',(data, guess_this) => {
     if(!guess_this)
-        appendMessage(`${data.name}: ${data.message}`, "#000000")
+        appendMessage(`<span>${data.name}:</span> ${data.message}`, "#000000")
     else
     {
         if(guessed)
         {
-            appendMessage(`${data.name}: ${data.message}`, "#00FFFF")
+            appendMessage(`<span>${data.name}:<span> ${data.message}`, "#00FFFF")
         }
     }
 });
 
 socket.on('user-connected', name => {
-    appendMessage(`${name} connected`, "#90EE90")
+    appendMessage(`<span>${name} connected</span>`, "#90EE90")
 });
 
 socket.on('clear-score-board', () => {
@@ -242,7 +243,7 @@ socket.on('edit-score-board', (scores_dict , name_dict) => {
     if(name_dict[key] != undefined)
     {
     var scoreElement = document.createElement('div')
-    scoreElement.innerText = `${name_dict[key]} \n Points: ${val}`
+    scoreElement.innerHTML = `<span style="font-size: large;">${name_dict[key]}</span><br> Points: ${val}`
     scoreContainer.append(scoreElement)
     }
   }
@@ -250,7 +251,7 @@ socket.on('edit-score-board', (scores_dict , name_dict) => {
 });
 
 socket.on('user-disconnected', name => {
-    appendMessage(`${name} disconnected`, "#FFFF00")
+    appendMessage(`<span> ${name} Left </span>`, "#FF0000")
 });
 
 socket.on('kick-out', () => {
@@ -273,7 +274,7 @@ socket.on('redirect', function(destination) {
 
 function appendMessage(message, color) {
     const messageElement = document.createElement('div')
-    messageElement.innerText = message
+    messageElement.innerHTML = message
     messageElement.style.color = color
     messageContainer.append(messageElement)
 }

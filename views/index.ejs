@@ -23,8 +23,8 @@
         
         margin: auto;
         background-color: lightgrey;
-        width: 600px;
-        height: 400px;
+        width: 650px;
+        height: 450px;
         border: 15px solid rgb(32, 134, 202);
         box-shadow: 10px 10px rgb(22, 38, 88);
         padding: 50px;
@@ -39,14 +39,14 @@
 <body>
     <div id="room-container" class="container">
         <form action="/room" method="POST">
-            <div class="center">
-                Room Name : <input name="room" type="text" required>
-                <button  class="btn btn-info" type="submit">New Public Room</button>
+            <div class="center" >
+                Room Name : <input style="margin: 5px;" name="room" type="text" required>
+                <button  class="btn btn-info" type="submit" style="margin: 5px;">New Public Room</button>
             </div>
         </form>
         <br>
         <div class="center">
-            <a href="/private" class="btn btn-info" role="button">Create/Join Private Room</a>
+            <a href="/private" class="btn btn-info" role="button" style="margin: 5px;">Create/Join Private Room</a>
         </div>
         <br>
         <div class="center">
@@ -54,10 +54,10 @@
         </div>
         <% Object.keys(rooms).forEach(room => { %>
             <% if(!rooms[room].id){ %>
-                <div class="center">
-                <%= room %>
+                <div class="center" style="font-weight: bold; font-size: large;">
+                <%= room %> : 
                 <br>
-                    <a href="/<%= room %>" class="btn btn-info" role="button">Join Room</a>
+                    <a href="/<%= room %>" class="btn btn-info" role="button" style="margin: 5px;">Join Room</a>
                 </div>
             <% } %>
         <% }) %>

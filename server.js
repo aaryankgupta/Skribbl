@@ -7,6 +7,7 @@ var EventEmitter = require('events').EventEmitter
 var emitter = new EventEmitter();
 
 require('dotenv').config({ path: './.env'});
+var randomWords = require('random-words');
 
 // database part
 const {Client} = require('pg')
@@ -40,7 +41,7 @@ const num_round = 3
 
 const rooms = {};
 
-const words = ['angel', 'angry', 'eyeball', 'pizza', 'book', 'giraffe', 'bible', 'cat', 'lion', 'stairs', 'tire', 'sun', 'camera', 'river'];
+const words = randomWords({ exactly: 5000 });
 
 var current_word = {};
 
@@ -149,6 +150,8 @@ io.on('connection', socket => {
     {
         io.to(socket.id).emit('disable-start-button');
         io.to(socket.id).emit('time', time[room]);
+        io.to(room).emit('clear-score-board');
+        io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
         io.to(socket.id).emit('guess-length', current_word[room].length);
     }
   });
@@ -259,6 +262,8 @@ io.on('connection', socket => {
       delete rooms[room].played[socket.id];
       delete rooms[room].scores[socket.id];
       delete rooms[room].total_scores[socket.id];
+      io.to(room).emit('clear-score-board');
+      io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
       if(Object.keys(rooms[room].users).length === 0)
       {
           clearInterval(roundInterval[room]);

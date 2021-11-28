@@ -20,11 +20,20 @@
       body {
           background-image: url('images/background.png');
       }
+
+      .list-group-item {
+        background-color: #f5f5f573
+      }
+
+      .list-group-item li:nth-child(2n) {
+        background-color: #FFF;
+      }
+
   </style>
 </head>
 
 <body id="body">
-        <h1>Leaderboard</h1>
+        <h1 class="text-info">Leaderboard</h1>
         <script> 
         const scoreboard = "<%= scoreboard %>"
         const sortable = "<%= sortable %>"
@@ -33,9 +42,9 @@
         <ul class="list-group">
           <% for(var i=0; i<sortable.length;i++) {%>
             <li class="list-group-item">
-              <span>Name: </span><%= scoreboard[sortable[i][0]].users %>
+              <span style="font-weight: bold; font-size: large;">Name: </span><%= scoreboard[sortable[i][0]].users %>
                 <br/>
-              <span>Score: </span><%= scoreboard[sortable[i][0]].scores %>
+              <span style="font-weight: bold; font-size: large;">Score: </span><%= scoreboard[sortable[i][0]].scores %>
             </li>
           <% } %>
         </ul>
