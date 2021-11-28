@@ -208,12 +208,12 @@ if (messageForm != null){
 
 }
 
-socket.on('display-scores' , (scores_dict, name_dict) =>{
-  new_dict = {};
+socket.on('display-scores' , (scores_dict, name_dict, start) =>{
+  var str = start
   for([key,val] of Object.entries(scores_dict)){
-    new_dict[name_dict[key]] = val;
+    if(name_dict[key] != undefined)
+    str = str + `${name_dict[key]} :    ${scores_dict[key]} \n`
   }
-  str = JSON.stringify(new_dict, null, 4)
   alert(str);
   socket.emit('initialize-score',roomName)
 });
