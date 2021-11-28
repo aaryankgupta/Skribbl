@@ -11,10 +11,12 @@ const votekick_button = document.getElementById('votekick-button')
 const start_button = document.getElementById('start-button')
 const score_container = document.getElementById('score-container')
 const word_modal = document.getElementById('modal-body-word')
+const videoGrid = document.getElementById('video-grid')
 
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var guessed = false;
+const peers = {}
 
 if (messageForm != null){
     if (roomPass != ''){
@@ -24,6 +26,33 @@ if (messageForm != null){
         }
     }
     const name = prompt('What is your name?');
+    const myPeer = new Peer(undefined, {
+      host: '/',
+      port: '3001'
+    });
+    const myVideo = document.createElement('video')
+    myVideo.muted = true
+
+    navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true
+    }).then(stream => {
+        addVideoStream(myVideo, stream)
+        myPeer.on('call', call => {
+        call.answer(stream)
+        const video = document.createElement('video')
+        call.on('stream', userVideoStream => {
+          addVideoStream(video, userVideoStream)
+        })
+    })
+    socket.on('peer-connected', userId => {
+          connectToNewUser(userId, stream)
+        })
+    })
+    myPeer.on('open', id => {
+        socket.emit('peer-id', roomName, id);
+    });
+
     appendMessage('You joined', "#90EE90");
     socket.emit('new-user', roomName, name);
     messageForm.addEventListener('submit', e => {
@@ -129,7 +158,7 @@ if (messageForm != null){
     }
 
     socket.on('votekick-message', (voter_name, curr_player_name, vote, num_palyer, kicked_out, kick_socket) =>{ 
-      if(socket.id != kick_socket){
+      if(socket.sessionid != kick_socket){
         if(kicked_out) appendMessage(`${curr_player_name} has been kicked out!!`, "#FF0000")
         else appendMessage(`'${voter_name}' is voting to kick '${curr_player_name}'  (${vote}/${num_palyer-1})`, "#FFFF00")
       }
@@ -159,6 +188,24 @@ if (messageForm != null){
     socket.on('time', (time) => {
         time_container.innerHTML = `Time Left: ${time}`;
     });
+    socket.on('peer-disconnect', userId => {
+      if(peers[userId])peers[userId].close();
+    });
+    function connectToNewUser(userId, stream)
+    {
+        const call = myPeer.call(userId, stream)
+        const video = document.createElement('video')
+        call.on('stream', userVideoStream => {
+            addVideoStream(video, userVideoStream)
+        })
+        call.on('close', () => {
+          video.remove()
+        })
+
+        peers[userId] = call
+    }
+
+
 }
 
 socket.on('display-scores' , (scores_dict, name_dict) =>{
@@ -207,6 +254,10 @@ socket.on('user-disconnected', name => {
     appendMessage(`${name} disconnected`, "#FFFF00")
 });
 
+socket.on('kick-out', () => {
+    alert("You have been kicked out")
+});
+
 socket.on('room-created', room => {
     const roomElement = document.createElement('div');
     roomElement.innerText = room;
@@ -226,5 +277,14 @@ function appendMessage(message, color) {
     messageElement.innerText = message
     messageElement.style.color = color
     messageContainer.append(messageElement)
+}
+
+function addVideoStream(video, stream)
+{
+    video.srcObject = stream
+    video.addEventListener('loadedmetadata', () => {
+    video.play()
+    })
+    videoGrid.append(video)
 }
 
