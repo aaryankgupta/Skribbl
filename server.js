@@ -36,7 +36,7 @@ app.set('view engine', 'ejs');
 app.use(express.static('public'));
 app.use(express.urlencoded({ extended: true }));
 
-const game_time = 90
+const game_time = 20
 const num_round = 3
 
 const rooms = {};

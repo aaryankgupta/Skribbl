@@ -42,11 +42,27 @@
     }
 
     #message-container div {
-      background-color: #F5F5F5;
+      background-color: #f5f5f5d2;
       padding: 5px;
     }
 
     #message-container div:nth-child(2n) {
+      background-color: #FFF;
+    }
+
+    #score-container{
+      position: absolute;
+      /* max-width: 1000px; */
+      width: 200px;
+      top: 50px;
+      margin-left: 255px;
+    }
+
+    #score-container div{
+      background-color: #f5f5f5d2;
+    }
+
+    #score-container div:nth-child(2n){
       background-color: #FFF;
     }
 
@@ -62,10 +78,12 @@
     }
 
     #time-container {
-        height: 20px;
+        /* height: 20px; */
         position: absolute;
-        top: 20px;
-        left: 950px;
+        background-color: thistle;
+        font-size: x-large;
+        top: 15px;
+        left: 460px;
     }
 
     #message-input {
@@ -73,21 +91,28 @@
     }
 
     #start-button-container {
-        position:relative;
-        left: 40px;
+        position: absolute;
+        left: 1375px;
+        /* right: 300px; */
     }
 
     #votekick-container {
         position: absolute;
-        top: 800px;
+        top: 700px;
+        left: 300px;
     }
 
     #word-container {
         position: absolute;
+        background-color: whitesmoke;
         top: 0;
-        left: 1000px;
-        height: 20px;
+        left: 900px;
+        /* height: 30px; */
         font-weight: bold;
+        font-size: xx-large;
+        letter-spacing: 20px;
+        padding: auto;
+        text-align: center;
     }
 
     #whiteboard {
@@ -101,11 +126,10 @@
     }
 
     #video-grid {
-        display: inline-flex;
-        grid-auto-flow: row;
+        grid-auto-flow: row dense;
         position: absolute;
-        top: 720px;
-        left: 100px;
+        top: 50px;
+        left: auto;
         height: 250px;
         width: 250px;
     }
@@ -117,16 +141,28 @@
     }
 
     #colors {
-      position: fixed;
+      position: absolute;
     }
 
-    .color {
+    #thickness{
+      position: relative;
+      margin-top: 810px;
+      margin-left: 900px;
+    }
+
+    div.color {
+      margin-bottom: -800px;
+      /* right: 200px; */
+      /* position: absolute; */
+      margin-left: 5px;
       display: inline-block;
-      height: 40px;
-      width: 40px;
+      height: 50px;
+      width: 50px;
     }
 
     .color.black {
+      /* margin-top: 800px; */
+      margin-left: 500px;
       background-color: black;
     }
 
@@ -160,22 +196,37 @@
         justify-content: center;
         align-items: center;
     }
+    canvas.canvas-container{
+        border: 2px solid; 
+        background: white;
+        position: absolute;
+        top:0;
+        bottom: 140px;
+        left: 0;
+        right: 0;
+        
+        margin: auto;
+        width: 1000px;
+        height: 700px;
+        /* border: 2px solid;  */
+        /* background: white; */
+    }
   </style>
 </head>
 <body>
-  <canvas id="canvas" style="border: 2px solid; background: white;">Your Browser doesn't support Canvas</canvas>
+  <canvas id="canvas" class="canvas-container"></canvas>
   <div id="colors">
-  <div class="color black" onclick="change('black')"></div>
-  <div class="color blue" onclick="change('blue')"></div>
-  <div class="color red" onclick="change('red')"></div>
-  <div class="color green" onclick="change('green')"></div>
-  <div class="color yellow" onclick="change('yellow')"></div> 
-  <div class="color grey" onclick="change('white')"></div> 
+    <div class="color black" onclick="change('black')"></div>
+    <div class="color blue" onclick="change('blue')"></div>
+    <div class="color red" onclick="change('red')"></div>
+    <div class="color green" onclick="change('green')"></div>
+    <div class="color yellow" onclick="change('yellow')"></div> 
+    <div class="color grey" onclick="change('white')"></div> 
   </div>
-  <div id="word-container"></div>
-
+  
   <input type = "range" max="20" min="1" oninput="changeWidth()" id="thickness" value="3"><br>
 
+  <div id="word-container"></div>
   <br>
 
   <div id="score-container"></div>
@@ -183,13 +234,13 @@
 
   <div id="start-button-container">
     <form>
-      <button type="submit" id="start-button" class="btn btn-success">Start</button>
+      <button type="submit" id="start-button" class="btn btn-success btn-lg">Start</button>
     </form>
   </div>
  
  <!-- utkarsh's part -->
   <div id="votekick-container">
-    <button type="button" id="votekick-button" onclick="vote()" class="btn btn-warning" disabled>Votekick</button>
+    <button type="button" id="votekick-button" onclick="vote()" class="btn btn-warning btn-lg" disabled>Votekick</button>
   </div>
 
   <div class="modal" role="dialog" tabindex="-1" id="word-modal" aria-hidden="true">
