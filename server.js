@@ -262,8 +262,6 @@ io.on('connection', socket => {
       delete rooms[room].played[socket.id];
       delete rooms[room].scores[socket.id];
       delete rooms[room].total_scores[socket.id];
-      io.to(room).emit('clear-score-board');
-      io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
       if(Object.keys(rooms[room].users).length === 0)
       {
           clearInterval(roundInterval[room]);
@@ -276,7 +274,7 @@ io.on('connection', socket => {
           delete timeInterval[room];
           delete rooms[room];
       }
-      if(game_on)
+      if(game_on[room])
       {
           if(current_player[room] == socket.id)
           {
@@ -287,6 +285,14 @@ io.on('connection', socket => {
               timeDec(room);
               timeInterval[room] = setInterval(timeDec, 1000, room);
               roundInterval[room] = setInterval(roundFunc, game_time*1000, room);
+          }
+          else
+          {
+              if(rooms[room] != undefined)
+              {
+              io.to(room).emit('clear-score-board');
+              io.to(room).emit('edit-score-board', rooms[room].total_scores, rooms[room].users);
+              }
           }
       }
     })
